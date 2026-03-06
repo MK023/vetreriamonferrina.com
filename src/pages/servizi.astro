@@ -1,0 +1,181 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import { services as staticServices, categories, type CategoryKey } from '../data/services';
+import { fetchWithFallback, queries } from '../lib/sanity';
+export const prerender = true;
+
+// Try Sanity, fall back to static data
+type ServiceItem = {
+  name: string;
+  description: string;
+  slug: string;
+  category: string;
+  image?: string;
+};
+const sanityServices = await fetchWithFallback<ServiceItem[] | null>(queries.services, null);
+const servicesData: ServiceItem[] =
+  sanityServices && sanityServices.length > 0 ? sanityServices : staticServices;
+
+const categoryButtons = Object.entries(categories) as [CategoryKey, string][];
+---
+
+<BaseLayout
+  title="Servizi"
+  description="Tutti i servizi della Vetreria Monferrina: box doccia, parapetti, pensiline, vetri camera, specchi e lavorazioni su misura."
+>
+  <!-- Hero section -->
+  <section class="bg-primary py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 lg:px-8">
+      <h1 class="font-heading text-4xl text-neutral-50 sm:text-5xl">I nostri servizi</h1>
+      <p class="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-200">
+        Esperienza, precisione e cura artigianale nella lavorazione del vetro, al servizio di
+        privati, aziende e professionisti dell'edilizia.
+      </p>
+    </div>
+  </section>
+
+  <!-- Services grid with filters -->
+  <section class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+    <!-- Category filters -->
+    <div
+      class="scrollbar-hide mb-10 flex gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0"
+      role="group"
+      aria-label="Filtra per categoria"
+    >
+      <button
+        type="button"
+        class="gallery-filter-active shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-colors"
+        data-service-filter="tutti"
+        aria-pressed="true"
+      >
+        Tutti
+      </button>
+      {
+        categoryButtons.map(([key, title]) => (
+          <button
+            type="button"
+            class="gallery-filter-inactive shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-colors"
+            data-service-filter={key}
+            aria-pressed="false"
+          >
+            {title}
+          </button>
+        ))
+      }
+    </div>
+
+    <!-- Live region for screen readers -->
+    <div id="services-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Single flat grid -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        servicesData.map((service) => (
+          <ServiceCard
+            name={service.name}
+            description={service.description}
+            slug={service.slug}
+            category={service.category}
+            image={service.image}
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-primary py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 text-center lg:px-8">
+      <h2 class="font-heading text-3xl text-neutral-50 sm:text-4xl">
+        Non trovi quello che cerchi?
+      </h2>
+      <p class="mx-auto mt-4 max-w-xl text-lg text-neutral-200">
+        Realizziamo qualsiasi lavorazione in vetro su misura. Contattaci per una consulenza
+        gratuita.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <a
+          href="/preventivo"
+          class="inline-block rounded-full bg-surface px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-neutral-100"
+        >
+          Richiedi preventivo
+        </a>
+        <a
+          href="/contatti"
+          class="inline-block rounded-full border-2 border-neutral-50 px-8 py-3 text-base font-semibold text-neutral-50 transition-colors hover:bg-neutral-50/10"
+        >
+          Contattaci
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  function initServiceFilters() {
+    const filterButtons = document.querySelectorAll<HTMLButtonElement>('[data-service-filter]');
+    const serviceItems = document.querySelectorAll<HTMLElement>('[data-service-item]');
+    const grid = serviceItems[0]?.parentElement;
+    let transitioning = false;
+
+    filterButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (transitioning) return;
+        const filter = btn.dataset.serviceFilter;
+
+        // Update button styles
+        filterButtons.forEach((b) => {
+          const isActive = b === btn;
+          b.setAttribute('aria-pressed', String(isActive));
+          b.classList.toggle('gallery-filter-active', isActive);
+          b.classList.toggle('gallery-filter-inactive', !isActive);
+        });
+
+        if (!grid) return;
+        transitioning = true;
+
+        // Fade out entire grid, swap content, fade in
+        const fadeOut = grid.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: 150,
+          easing: 'ease-in',
+          fill: 'forwards',
+        });
+
+        fadeOut.onfinish = () => {
+          // Swap visibility while grid is invisible
+          let visibleCount = 0;
+          serviceItems.forEach((item) => {
+            item.getAnimations().forEach((a) => a.cancel());
+            const matches = filter === 'tutti' || item.dataset.serviceCategory === filter;
+            if (matches) {
+              visibleCount++;
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+
+          // Fade grid back in
+          grid.animate([{ opacity: 0 }, { opacity: 1 }], {
+            duration: 250,
+            easing: 'ease-out',
+            fill: 'forwards',
+          }).onfinish = () => {
+            transitioning = false;
+          };
+
+          // Announce to screen readers
+          const liveRegion = document.getElementById('services-live');
+          if (liveRegion) {
+            const label = btn.textContent?.trim() || filter;
+            liveRegion.textContent = `${label}: ${visibleCount} ${visibleCount === 1 ? 'servizio' : 'servizi'}`;
+          }
+        };
+      });
+    });
+  }
+
+  initServiceFilters();
+  document.addEventListener('astro:after-swap', initServiceFilters);
+</script>

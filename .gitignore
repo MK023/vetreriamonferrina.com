@@ -1,0 +1,47 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Testing
+playwright-report/
+test-results/
+.playwright-mcp/
+coverage/
+blob-report/
+
+# Lighthouse CI
+.lighthouseci/
+
+# TypeScript
+*.tsbuildinfo
+
+# Build-time generated data (contains API references)
+src/data/place-photos.json
+
+# Sanity Studio
+sanity/.sanity/
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# OS
+.DS_Store
+Thumbs.db
+.vercel
