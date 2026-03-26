@@ -31,56 +31,64 @@ const categoryButtons = Object.entries(categories) as [CategoryKey, string][];
       <p class="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-200">
         Esperienza, precisione e cura artigianale nella lavorazione del vetro, al servizio di
         privati, aziende e professionisti dell'edilizia.
+        <a
+          href="/trasporto-e-montaggio"
+          class="transport-link mt-2 inline-block text-neutral-50 no-underline underline-offset-4 hover:decoration-neutral-50"
+        >
+          Tutti i servizi includono trasporto e montaggio professionali.
+        </a>
       </p>
     </div>
   </section>
 
   <!-- Services grid with filters -->
-  <section class="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-    <!-- Category filters -->
-    <div
-      class="scrollbar-hide mb-10 flex gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0"
-      role="group"
-      aria-label="Filtra per categoria"
-    >
-      <button
-        type="button"
-        class="gallery-filter-active shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-colors"
-        data-service-filter="tutti"
-        aria-pressed="true"
+  <section class="bg-neutral-50 py-16">
+    <div class="mx-auto max-w-7xl px-4 lg:px-8">
+      <!-- Category filters -->
+      <div
+        class="scrollbar-hide mb-10 flex gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0"
+        role="group"
+        aria-label="Filtra per categoria"
       >
-        Tutti
-      </button>
-      {
-        categoryButtons.map(([key, title]) => (
-          <button
-            type="button"
-            class="gallery-filter-inactive shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-colors"
-            data-service-filter={key}
-            aria-pressed="false"
-          >
-            {title}
-          </button>
-        ))
-      }
-    </div>
+        <button
+          type="button"
+          class="gallery-filter-active shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-colors"
+          data-service-filter="tutti"
+          aria-pressed="true"
+        >
+          Tutti
+        </button>
+        {
+          categoryButtons.map(([key, title]) => (
+            <button
+              type="button"
+              class="gallery-filter-inactive shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-colors"
+              data-service-filter={key}
+              aria-pressed="false"
+            >
+              {title}
+            </button>
+          ))
+        }
+      </div>
 
-    <!-- Live region for screen readers -->
-    <div id="services-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <!-- Live region for screen readers -->
+      <div id="services-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- Single flat grid -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        servicesData.map((service) => (
-          <ServiceCard
-            name={service.name}
-            description={service.description}
-            slug={service.slug}
-            category={service.category}
-            image={service.image}
-          />
-        ))
-      }
+      <!-- Single flat grid -->
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          servicesData.map((service) => (
+            <ServiceCard
+              name={service.name}
+              description={service.description}
+              slug={service.slug}
+              category={service.category}
+              image={service.image}
+            />
+          ))
+        }
+      </div>
     </div>
   </section>
 
@@ -178,4 +186,92 @@ const categoryButtons = Object.entries(categories) as [CategoryKey, string][];
 
   initServiceFilters();
   document.addEventListener('astro:after-swap', initServiceFilters);
+</script>
+
+<style>
+  .transport-link {
+    position: relative;
+    text-decoration: none;
+    display: inline-block;
+    overflow: hidden;
+  }
+  .transport-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 120% 200% at 50% 50%,
+      transparent 25%,
+      rgb(255 255 255 / 0.08) 36%,
+      rgb(255 255 255 / 0.45) 46%,
+      rgb(255 255 255 / 0.2) 56%,
+      rgb(255 255 255 / 0.05) 66%,
+      transparent 78%
+    );
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+  .transport-link.drawn::before {
+    animation: transport-shine 2.5s ease-in-out forwards;
+  }
+  .transport-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0;
+    height: 1px;
+    background: var(--color-neutral-50);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .transport-link.drawn::after {
+    width: 100%;
+  }
+  .transport-link:hover::after {
+    width: 100%;
+    transition: width 0.3s ease;
+  }
+
+  @keyframes transport-shine {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .transport-link::before {
+      display: none;
+    }
+    .transport-link::after {
+      transition: none;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  function initTransportLink(): void {
+    const link = document.querySelector<HTMLElement>('.transport-link');
+    if (!link) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Force animation restart
+            link.classList.remove('drawn');
+            void link.offsetWidth;
+            setTimeout(() => link.classList.add('drawn'), 600);
+          } else {
+            link.classList.remove('drawn');
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(link);
+  }
+
+  initTransportLink();
+  document.addEventListener('astro:after-swap', initTransportLink);
 </script>
