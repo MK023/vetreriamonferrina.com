@@ -15,53 +15,82 @@ interface Env {
   MAINTENANCE_ENABLED: string;
 }
 
+const ORIGIN = 'https://vetreriamonferrina.vercel.app';
+
+async function passthrough(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const originUrl = `${ORIGIN}${url.pathname}${url.search}`;
+  const originRequest = new Request(originUrl, {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    redirect: 'follow',
+  });
+  const response = await fetch(originRequest);
+  const headers = new Headers(response.headers);
+  headers.set('x-maintenance', 'off');
+  headers.set('x-worker', 'active');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // When maintenance is OFF, pass through to origin (Vercel)
-    if (env.MAINTENANCE_ENABLED !== 'true') {
-      return fetch(request);
-    }
+    try {
+      if (env.MAINTENANCE_ENABLED !== 'true') {
+        return await passthrough(request);
+      }
 
-    const url = new URL(request.url);
-    const path = url.pathname;
+      const url = new URL(request.url);
+      const path = url.pathname;
 
-    // Let the maintenance page and its assets through to origin
-    if (
-      path === '/maintenance' ||
-      path.startsWith('/_astro/') ||
-      path.startsWith('/images/') ||
-      path.startsWith('/fonts/') ||
-      path.startsWith('/favicon') ||
-      path.endsWith('.svg') ||
-      path.endsWith('.png') ||
-      path.endsWith('.webp') ||
-      path.endsWith('.woff2') ||
-      path.endsWith('.ico')
-    ) {
-      return fetch(request);
-    }
+      if (
+        path === '/maintenance' ||
+        path.startsWith('/_astro/') ||
+        path.startsWith('/images/') ||
+        path.startsWith('/fonts/') ||
+        path.startsWith('/favicon') ||
+        path.endsWith('.svg') ||
+        path.endsWith('.png') ||
+        path.endsWith('.webp') ||
+        path.endsWith('.woff2') ||
+        path.endsWith('.ico')
+      ) {
+        return await passthrough(request);
+      }
 
-    // API routes: return JSON 503
-    if (path.startsWith('/api/')) {
-      return new Response(JSON.stringify({ error: 'Sito in manutenzione. Riprova più tardi.' }), {
+      if (path.startsWith('/api/')) {
+        return new Response(JSON.stringify({ error: 'Sito in manutenzione. Riprova più tardi.' }), {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '3600',
+          },
+        });
+      }
+
+      const maintenanceResponse = await fetch(`${ORIGIN}/maintenance`);
+      return new Response(maintenanceResponse.body, {
         status: 503,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/html;charset=UTF-8',
           'Retry-After': '3600',
+          'Cache-Control': 'no-store',
+          'x-maintenance': 'on',
+          'x-worker': 'active',
+        },
+      });
+    } catch {
+      return new Response('Servizio temporaneamente non disponibile.', {
+        status: 502,
+        headers: {
+          'Content-Type': 'text/plain;charset=UTF-8',
+          'Retry-After': '60',
         },
       });
     }
-
-    // All other requests: fetch maintenance page from origin, serve as 503
-    const maintenanceResponse = await fetch(new URL('/maintenance', url.origin).toString());
-
-    return new Response(maintenanceResponse.body, {
-      status: 503,
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8',
-        'Retry-After': '3600',
-        'Cache-Control': 'no-store',
-      },
-    });
   },
 };
