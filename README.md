@@ -22,6 +22,29 @@ Sito vetrina con form preventivi, galleria lavori, blog, 16 pagine servizio, FAQ
 
 **[vetreriamonferrina.com](https://vetreriamonferrina.com)**
 
+## Perché questo stack per un sito vetrina locale
+
+Sito sviluppato per un cliente reale di Casale Monferrato. L'over-engineering apparente (SonarCloud, Lighthouse CI, Playwright E2E, Cloudflare Worker per la maintenance, monitoring Checkly da due regioni) è una scelta deliberata: dimostra che gli stessi pattern enterprise (quality gate, CI con 8 step, security headers, monitoring sintetico) possono essere applicati a un progetto piccolo con cliente reale, senza spreco di budget — l'intero stack gira sui free tier.
+
+Lo stack scelto (Astro 5 SSG + Vercel serverless + Cloudflare proxy + Sanity headless) ottimizza per tre cose: **performance** (TTFB sotto 200 ms grazie a SSG + CDN edge), **manutenibilità a basso costo** (il cliente può aggiornare orari e contenuti da solo via Sanity Studio), **resilienza** (Cloudflare WAF + maintenance mode worker per i raffreddamenti).
+
+## Costo di esercizio
+
+Il sito gira in produzione a **costo zero**:
+
+| Componente | Costo | Note |
+|---|---|---|
+| Vercel (Hobby plan) | €0/mese | Serverless functions + edge network |
+| Cloudflare (Free plan) | €0/mese | DNS, proxy, WAF, Worker maintenance, Web Analytics |
+| Sanity (Free tier) | €0/mese | CMS headless, 3 utenti, 10K documenti, 100K richieste API |
+| Resend (Free tier) | €0/mese | 100 email/giorno, dominio verificato |
+| Checkly (Free tier) | €0/mese | 3 check ogni 10 minuti, 2 regioni |
+| Google Places API | €0/mese | Dati scaricati a build-time, no chiamate runtime |
+| Open-Meteo | €0/mese | Pubblico, senza API key |
+| Dominio `.com` | ~€10/anno | Registrato presso Cloudflare Registrar (prezzo di costo) |
+
+Costo totale: **~€10/anno** (solo dominio). Il sito serve un'azienda locale con traffico contenuto — sotto i limiti del free tier non c'è scenario realistico in cui questa configurazione paghi qualcosa, anche se il traffico decuplicasse.
+
 ## Tech Stack
 
 | Categoria       | Tecnologia                                            |
