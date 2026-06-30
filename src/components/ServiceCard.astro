@@ -2,15 +2,17 @@
 // src/components/ServiceCard.astro
 import ProtectedImage from './ProtectedImage.astro';
 
-export interface Props {
+interface Props {
   name: string;
   description: string;
   slug: string;
   category: string;
   image?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
 }
 
-const { name, description, slug, category, image } = Astro.props;
+const { name, description, slug, category, image, loading, fetchpriority } = Astro.props;
 ---
 
 <div class="group pb-1" data-service-item data-service-category={category}>
@@ -22,11 +24,13 @@ const { name, description, slug, category, image } = Astro.props;
         <div class="aspect-[4/3] overflow-hidden">
           <ProtectedImage
             src={image}
-            alt={name}
+            alt={description}
             class="transition-transform duration-300 group-hover:scale-105"
             wrapperClass="h-full w-full bg-neutral-200"
             width={800}
             height={600}
+            loading={loading}
+            fetchpriority={fetchpriority}
           />
         </div>
       ) : (

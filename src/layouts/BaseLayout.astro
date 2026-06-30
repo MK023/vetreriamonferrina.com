@@ -8,18 +8,25 @@ import BottomNav from '../components/BottomNav.astro';
 import CookieBanner from '../components/CookieBanner.astro';
 import Chatbot from '../components/Chatbot.astro';
 import SpeedInsights from '@vercel/speed-insights/astro';
+import reviews from '../data/reviews.json';
 
 export interface Props {
   title: string;
+  /** Title completo, usato così com'è senza il suffisso "| Vetreria Monferrina". */
+  fullTitle?: string;
   description?: string;
   ogImage?: string;
+  noindex?: boolean;
 }
 
 const {
   title,
+  fullTitle,
   description = 'Vetreria storica a Casale Monferrato. Box doccia, parapetti, pensiline, vetri camera, specchi e lavorazioni su misura.',
   ogImage,
+  noindex = false,
 } = Astro.props;
+const pageTitle = fullTitle ?? `${title} | Vetreria Monferrina`;
 const canonicalURL = Astro.site
   ? new URL(Astro.url.pathname, Astro.site)
   : new URL(Astro.url.pathname, Astro.url.origin);
@@ -64,6 +71,13 @@ const jsonLd = {
   ],
   priceRange: '$$',
   image: 'https://vetreriamonferrina.com/images/og-image.jpg',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: reviews.rating,
+    reviewCount: reviews.totalReviews,
+    bestRating: 5,
+    worstRating: 1,
+  },
   areaServed: [
     { '@type': 'State', name: 'Piemonte' },
     { '@type': 'State', name: 'Lombardia' },
@@ -90,10 +104,11 @@ const jsonLd = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>{title} | Vetreria Monferrina</title>
+    <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonicalURL} />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:type" content="website" />
@@ -106,7 +121,7 @@ const jsonLd = {
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Vetreria Monferrina" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={`${title} | Vetreria Monferrina`} />
+    <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta
       name="twitter:image"
@@ -173,6 +188,14 @@ const jsonLd = {
         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"></path>
       </svg>
     </button>
+
+    <!--
+      Overlay a schermo intero (es. lightbox galleria): deve stare fuori da
+      <main>, che con view-transition-name forma uno stacking context e
+      intrappolerebbe lo z-index sotto footer, cookie banner e back-to-top.
+      Ultimo nel body, così vince anche sui fratelli senza z-index esplicito.
+    -->
+    <slot name="overlay" />
 
     <script>
       function initImageProtection(): void {

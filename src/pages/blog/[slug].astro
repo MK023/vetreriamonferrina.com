@@ -13,29 +13,27 @@ export function getStaticPaths() {
 const { slug } = Astro.params;
 const post = blogPosts.find((p) => p.slug === slug)!;
 
+// Slugify h2 text into a stable anchor id (shared by the TOC and the injected ids)
+const slugify = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-zà-ú0-9\s]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 50);
+
 // Extract h2 headings for sidebar TOC
-const headingRegex = /<h2>(.*?)<\/h2>/g;
 const headings: { id: string; text: string }[] = [];
 let match;
+const headingRegex = /<h2>(.*?)<\/h2>/g;
 while ((match = headingRegex.exec(post.content)) !== null) {
-  const text = match[1];
-  const id = text
-    .toLowerCase()
-    .replace(/[^a-zà-ú0-9\s]/g, '')
-    .replace(/\s+/g, '-')
-    .slice(0, 50);
-  headings.push({ id, text });
+  headings.push({ id: slugify(match[1]), text: match[1] });
 }
 
-// Inject IDs into h2 tags for anchor links
-const contentWithIds = post.content.replace(/<h2>(.*?)<\/h2>/g, (_full, text) => {
-  const id = text
-    .toLowerCase()
-    .replace(/[^a-zà-ú0-9\s]/g, '')
-    .replace(/\s+/g, '-')
-    .slice(0, 50);
-  return `<h2 id="${id}">${text}</h2>`;
-});
+// Inject the same IDs into h2 tags for anchor links
+const contentWithIds = post.content.replace(
+  /<h2>(.*?)<\/h2>/g,
+  (_full, text) => `<h2 id="${slugify(text)}">${text}</h2>`
+);
 
 // Related posts
 const related = post.related
@@ -61,6 +59,22 @@ const articleSchema = {
   },
   ...(post.image && { image: `https://vetreriamonferrina.com${post.image}` }),
 };
+
+// Structured data BreadcrumbList: Home > Blog > articolo corrente.
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vetreriamonferrina.com' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vetreriamonferrina.com/blog' },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: post.title,
+      item: `https://vetreriamonferrina.com/blog/${slug}`,
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -68,7 +82,8 @@ const articleSchema = {
   description={post.description}
   ogImage={post.image ? `https://vetreriamonferrina.com${post.image}` : undefined}
 >
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
   <section class="bg-primary py-16 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 lg:px-8">
@@ -222,6 +237,15 @@ const articleSchema = {
   .blog-content strong {
     font-weight: 600;
     color: var(--color-neutral-900);
+  }
+  .blog-content a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s;
+  }
+  .blog-content a:hover {
+    color: var(--color-primary-dark);
   }
 
   @media (min-width: 640px) {

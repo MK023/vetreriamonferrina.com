@@ -3,7 +3,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CtaSection from '../../components/CtaSection.astro';
 import GlassPanel from '../../components/GlassPanel.astro';
-import { services } from '../../data/services';
+import { services, type Service } from '../../data/services';
 import { serviceDetails } from '../../data/service-details';
 export const prerender = true;
 
@@ -15,18 +15,70 @@ const { slug } = Astro.params;
 const service = services.find((s) => s.slug === slug)!;
 const details = serviceDetails[slug!]!;
 
-// Related services: same category, excluding current
-const related = services
-  .filter((s) => s.category === service.category && s.slug !== slug)
-  .slice(0, 3);
-const hasMaterials = details.materials && details.materials.length > 0;
+// Related services: curated list when defined, otherwise same category (excluding current)
+const related: Service[] = details.related
+  ? details.related
+      .map((relSlug) => services.find((s) => s.slug === relSlug))
+      .filter((s): s is Service => Boolean(s))
+  : services.filter((s) => s.category === service.category && s.slug !== slug).slice(0, 3);
+const hasMaterials = Boolean(details.materials && details.materials.length > 0);
+const hasWhenToChoose = Boolean(details.whenToChoose);
+const hasFaq = Boolean(details.faq && details.faq.length > 0);
+
+// Sfondi alternati per le sezioni dopo "Caratteristiche" (che è bg-neutral-50): partono da bg-surface.
+const sectionOrder = [
+  hasMaterials && 'materials',
+  hasWhenToChoose && 'whenToChoose',
+  hasFaq && 'faq',
+  related.length > 0 && 'related',
+].filter(Boolean) as string[];
+const bgFor: Record<string, string> = {};
+sectionOrder.forEach((key, i) => {
+  bgFor[key] = i % 2 === 0 ? 'bg-surface' : 'bg-neutral-50';
+});
+
+// Structured data FAQPage (rich snippet) quando ci sono FAQ.
+const faqSchema = hasFaq
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: details.faq!.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    }
+  : null;
+
+// Structured data BreadcrumbList: Home > Servizi > servizio corrente.
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vetreriamonferrina.com' },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Servizi',
+      item: 'https://vetreriamonferrina.com/servizi',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: service.name,
+      item: `https://vetreriamonferrina.com/servizi/${slug}`,
+    },
+  ],
+};
 ---
 
 <BaseLayout
-  title={service.name}
+  title={`${service.name} a Casale Monferrato`}
   description={details.seoDescription}
   ogImage={service.image ? `https://vetreriamonferrina.com${service.image}` : undefined}
 >
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
   <section class="bg-primary py-16 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 lg:px-8">
       <GlassPanel class="max-w-3xl">
@@ -50,7 +102,7 @@ const hasMaterials = details.materials && details.materials.length > 0;
           <div class="mx-auto mb-12 max-w-sm sm:max-w-md" data-reveal>
             <img
               src={service.image}
-              alt={service.name}
+              alt={service.description}
               class="w-full rounded-2xl shadow-md"
               loading="eager"
             />
@@ -78,7 +130,7 @@ const hasMaterials = details.materials && details.materials.length > 0;
 
   {
     hasMaterials && (
-      <section class="bg-surface py-16 sm:py-20">
+      <section class:list={[bgFor.materials, 'py-16 sm:py-20']}>
         <div class="mx-auto max-w-7xl px-4 lg:px-8">
           <h2 class="font-heading text-3xl text-primary text-center sm:text-4xl mb-8" data-reveal>
             Materiali disponibili
@@ -96,8 +148,59 @@ const hasMaterials = details.materials && details.materials.length > 0;
   }
 
   {
+    hasWhenToChoose && (
+      <section class:list={[bgFor.whenToChoose, 'py-16 sm:py-20']}>
+        <div class="mx-auto max-w-3xl px-4 lg:px-8" data-reveal>
+          <h2 class="font-heading text-3xl text-primary text-center sm:text-4xl mb-6">
+            Quando scegliere {service.name.toLowerCase()}
+          </h2>
+          <p class="text-lg leading-relaxed text-neutral-800">{details.whenToChoose}</p>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    hasFaq && (
+      <section class:list={[bgFor.faq, 'py-16 sm:py-20']}>
+        <div class="mx-auto max-w-3xl px-4 lg:px-8">
+          <h2 class="font-heading text-3xl text-primary text-center sm:text-4xl mb-8" data-reveal>
+            Domande frequenti
+          </h2>
+          <div class="space-y-4">
+            {details.faq!.map((item, i) => (
+              <details
+                class="group rounded-2xl border border-neutral-200 bg-surface p-5 shadow-sm"
+                data-reveal
+                data-delay={String((i % 4) + 1)}
+              >
+                <summary class="flex cursor-pointer items-center justify-between gap-4 font-heading text-lg text-primary marker:content-none">
+                  {item.q}
+                  <span
+                    class="shrink-0 text-2xl text-primary transition-transform duration-200 group-open:rotate-45"
+                    aria-hidden="true"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p class="mt-3 text-base leading-relaxed text-neutral-800">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    faqSchema && (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    )
+  }
+
+  {
     related.length > 0 && (
-      <section class:list={[hasMaterials ? 'bg-neutral-50' : 'bg-surface', 'py-16 sm:py-20']}>
+      <section class:list={[bgFor.related, 'py-16 sm:py-20']}>
         <div class="mx-auto max-w-7xl px-4 lg:px-8">
           <h2 class="font-heading text-3xl text-primary text-center sm:text-4xl mb-8" data-reveal>
             Servizi correlati
