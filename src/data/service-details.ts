@@ -44,10 +44,10 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       'Vetro trasparente extra-chiaro',
     ],
     seoDescription:
-      'Box doccia su misura in vetro temperato a Casale Monferrato. Progettazione, realizzazione e montaggio professionale. Sopralluogo gratuito.',
+      'Box doccia su misura in vetro temperato a Casale Monferrato, anche modelli walk-in. Progettazione, realizzazione e montaggio professionale. Sopralluogo gratuito.',
     related: ['specchi', 'porte-interne', 'madras'],
     whenToChoose:
-      'La maggior parte dei box doccia in commercio ha misure standard, che raramente combaciano con lo spazio reale del bagno. Con un box su misura non sei tu a dover adattare il bagno al box: è il box ad adattarsi al bagno. È la scelta giusta quando hai una nicchia, un sottotetto in pendenza o una parete non perfettamente dritta, oppure quando cerchi semplicemente un risultato pulito, senza profili e ingombri inutili. Durante il sopralluogo prendiamo le misure esatte e ti consigliamo apertura, spessore del vetro e finiture più adatte al tuo spazio.',
+      'La maggior parte dei box doccia in commercio ha misure standard, che raramente combaciano con lo spazio reale del bagno. Con un box su misura non sei tu a dover adattare il bagno al box: è il box ad adattarsi al bagno. È la scelta giusta quando hai una nicchia, un sottotetto in pendenza o una parete non perfettamente dritta, oppure quando cerchi semplicemente un risultato pulito, senza profili e ingombri inutili. Realizziamo tutte le tipologie, dall’anta battente o scorrevole alla doccia walk-in senza porta — la soluzione più richiesta per le docce moderne a filo pavimento. Durante il sopralluogo prendiamo le misure esatte e ti consigliamo apertura, spessore del vetro e finiture più adatte al tuo spazio.',
     faq: [
       {
         q: 'È difficile pulire il vetro del box doccia?',
@@ -65,12 +65,16 @@ export const serviceDetails: Record<string, ServiceDetail> = {
         q: 'Il montaggio del box doccia è compreso?',
         a: 'Sì, ci occupiamo noi dell’installazione. Mettiamo il box in bolla e sigilliamo i giunti con cura: la tenuta all’acqua dipende proprio da una posa fatta a regola d’arte.',
       },
+      {
+        q: 'Come si rimuove il silicone vecchio dal box doccia?',
+        a: 'Si ammorbidisce il silicone con un prodotto specifico o con alcol, poi si stacca delicatamente con una spatola o un taglierino, facendo attenzione a non rigare il vetro. Si pulisce e si asciuga bene la superficie prima di applicare il nuovo sigillante. Se preferisci, durante la manutenzione ce ne occupiamo noi.',
+      },
     ],
   },
 
   parapetti: {
     intro:
-      'Installiamo parapetti in vetro per balconi, terrazze, scale interne ed esterne. Il vetro stratificato di sicurezza garantisce protezione senza rinunciare alla trasparenza e alla luce naturale.',
+      'Installiamo parapetti in vetro — chiamati anche balaustre o ringhiere in vetro — per balconi, terrazze, scale interne ed esterne. Il vetro stratificato di sicurezza garantisce protezione senza rinunciare alla trasparenza e alla luce naturale.',
     features: [
       {
         title: 'Sicurezza certificata',
@@ -95,10 +99,10 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       'Vetro extra-chiaro',
     ],
     seoDescription:
-      'Parapetti in vetro per balconi, scale e terrazze a Casale Monferrato. Installazione certificata con vetro stratificato di sicurezza.',
+      'Parapetti e balaustre in vetro — ringhiere per balconi, scale e terrazze a Casale Monferrato. Installazione certificata in vetro stratificato di sicurezza.',
     related: ['stratificati', 'pensiline', 'vetrine'],
     whenToChoose:
-      'Un parapetto in vetro mette in sicurezza balconi, scale e terrazze senza togliere luce né visuale. È la soluzione ideale quando vuoi proteggere senza chiudere: il vetro stratificato di sicurezza garantisce resistenza e, in caso di rottura, trattiene i frammenti restando in posizione. Scegliamo insieme il sistema di fissaggio — a pinza, a pavimento o a muro — in base al contesto architettonico e alle normative vigenti.',
+      'Un parapetto in vetro — o balaustra — mette in sicurezza balconi, scale e terrazze senza togliere luce né visuale. È la soluzione ideale quando vuoi proteggere senza chiudere: che si tratti della ringhiera in vetro di un balcone o della balaustra di una scala interna, il vetro stratificato di sicurezza garantisce resistenza e, in caso di rottura, trattiene i frammenti restando in posizione. Scegliamo insieme il sistema di fissaggio — a pinza, a pavimento o a muro — in base al contesto architettonico e alle normative vigenti.',
     faq: [
       {
         q: 'Un parapetto in vetro è sicuro come uno tradizionale?',
@@ -111,6 +115,14 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       {
         q: 'Il vetro resiste a pioggia, vento e sole?',
         a: 'Sì, i materiali sono pensati per l’esterno e resistono ad agenti atmosferici e sbalzi termici senza alterarsi nel tempo.',
+      },
+      {
+        q: 'Quanto costa un parapetto in vetro?',
+        a: 'Il prezzo dipende dai metri lineari, dal tipo di vetro e dal sistema di fissaggio. Facciamo un sopralluogo gratuito e ti diamo un preventivo chiaro e senza impegno, posa compresa.',
+      },
+      {
+        q: 'Come si pulisce un parapetto in vetro?',
+        a: 'Basta un panno morbido con acqua e un detergente neutro, o un prodotto specifico per vetri. Evita spugne abrasive e prodotti aggressivi: così la trasparenza dura nel tempo senza rigature.',
       },
     ],
   },
@@ -196,7 +208,49 @@ export const serviceDetails: Record<string, ServiceDetail> = {
         a: 'Sì, abbiamo esperienza e attrezzature professionali per la posa di vetrate commerciali anche di grande formato.',
       },
     ],
-    related: ['blindati', 'vetrocamera', 'sostituzione-vetri'],
+    related: ['blindati', 'vetrocamera', 'espositori'],
+  },
+
+  espositori: {
+    intro:
+      'Progettiamo e realizziamo espositori e vetrinette espositive su misura in vetro, per negozi, showroom, collezioni private ed esposizioni. Ogni espositore è tagliato, molato e assemblato sulle dimensioni esatte dello spazio e del prodotto da valorizzare.',
+    features: [
+      {
+        title: 'Su misura',
+        text: 'Vetrinette ed espositori realizzati sulle misure precise del tuo spazio e di ciò che devi esporre — nessun formato standard.',
+      },
+      {
+        title: 'Vetro di qualità',
+        text: 'Vetro temperato o extra-chiaro per massima trasparenza e sicurezza, con ripiani in vetro su misura.',
+      },
+      {
+        title: 'Per ogni contesto',
+        text: 'Espositori per negozi e vetrine da esposizione, vetrinette per collezioni e collezionismo, soluzioni per attività come gelaterie e pasticcerie.',
+      },
+      {
+        title: 'Illuminazione integrabile',
+        text: 'Predisposizione per illuminazione LED per mettere in risalto i prodotti in esposizione.',
+      },
+    ],
+    seoDescription:
+      'Espositori e vetrinette espositive su misura in vetro a Casale Monferrato: per negozi, collezioni ed esposizioni. Vetro temperato, ripiani su misura.',
+    whenToChoose:
+      'Un espositore in vetro mette in risalto ciò che conta di più: un prodotto in negozio, una collezione, un pezzo unico. Realizziamo vetrinette espositive e vetrine da esposizione su misura — dal singolo espositore da banco alla vetrinetta a colonna con più ripiani — scegliendo insieme vetro, finiture e illuminazione in base a cosa devi esporre e allo spazio disponibile. Che si tratti di una vetrinetta per collezionismo o di un espositore per la tua attività, il vetro su misura fa la differenza tra un oggetto “messo lì” e uno valorizzato.',
+    faq: [
+      {
+        q: 'Realizzate espositori e vetrinette su misura?',
+        a: 'Sì: ogni espositore è progettato e costruito sulle dimensioni esatte dello spazio e del prodotto da esporre, con ripiani in vetro tagliati su misura.',
+      },
+      {
+        q: 'Fate vetrinette per collezioni e collezionismo?',
+        a: 'Sì, realizziamo vetrinette espositive per collezioni private e collezionismo, con vetro trasparente che valorizza gli oggetti e li protegge dalla polvere.',
+      },
+      {
+        q: 'Gli espositori sono adatti a negozi e attività?',
+        a: 'Sì, produciamo espositori e vetrine da esposizione per negozi, showroom e attività come gelaterie e pasticcerie, anche con predisposizione per l’illuminazione.',
+      },
+    ],
+    related: ['vetrine', 'specchi', 'molature'],
   },
 
   'sostituzione-vetri': {
@@ -540,7 +594,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     ],
     seoDescription:
       "Specchi su misura a Casale Monferrato. Taglio, molatura e installazione professionale per bagni, armadi e complementi d'arredo.",
-    related: ['box-doccia', 'molature', 'porte-interne'],
+    related: ['box-doccia', 'molature', 'espositori'],
     whenToChoose:
       'Uno specchio su misura risolve tutti i casi in cui i modelli standard non bastano: pareti irregolari, spazi sopra il lavabo, ante di armadi, palestre e studi di danza. Possiamo tagliare qualsiasi forma e rifinire i bordi con molatura a filo lucido o bisello, per un risultato sicuro ed elegante. In fase di sopralluogo valutiamo insieme dimensioni, tipo di fissaggio e finitura più adatti all’ambiente.',
     faq: [
