@@ -1,4 +1,4 @@
-import { ApiCheck, AssertionBuilder } from 'checkly/constructs';
+import { ApiCheck, AssertionBuilder, Frequency } from 'checkly/constructs';
 import { websiteGroup } from './groups.check';
 
 // Liveness check dell'API preventivi — SILENZIOSO (niente mail reali) e affidabile.
@@ -12,10 +12,16 @@ import { websiteGroup } from './groups.check';
 // chunked di Checkly, perdendo campi del payload (era la causa sia dei falsi 400
 // sia delle mail false: senza `dryRun`/honeypot nel body corrotto, l'email partiva).
 // Bypassandolo, il body arriva integro e `dryRun` viene rispettato.
+//
+// Origin lockdown: colpendo l'origin diretto NON si passa dal Worker (che timbra
+// `x-origin-verify`). Lo forniamo a mano (secret Checkly ORIGIN_VERIFY_SECRET, stesso
+// valore di CF/Vercel) così il middleware in produzione accetta questa richiesta sull'API.
+// Email-safe: secret errato → 403 (nessuna mail, il 403 precede l'handler).
 new ApiCheck('send-quote-api', {
   name: 'Send Quote API',
   group: websiteGroup,
   activated: true,
+  frequency: Frequency.EVERY_30M,
   degradedResponseTime: 5000,
   maxResponseTime: 10000,
   request: {
@@ -26,6 +32,7 @@ new ApiCheck('send-quote-api', {
     headers: [
       { key: 'Content-Type', value: 'application/json' },
       { key: 'Origin', value: 'https://vetreriamonferrina.com' },
+      { key: 'x-origin-verify', value: '{{ORIGIN_VERIFY_SECRET}}' },
     ],
     body: JSON.stringify({
       name: 'Checkly Monitor',

@@ -48,9 +48,9 @@ const articleSchema = {
   description: post.description,
   datePublished: post.date,
   author: {
-    '@type': 'Organization',
-    name: 'Vetreria Monferrina',
-    url: 'https://vetreriamonferrina.com',
+    '@type': 'Person',
+    name: post.author ?? 'Giuseppe Fioravanti',
+    url: 'https://vetreriamonferrina.com/chi-siamo',
   },
   publisher: {
     '@type': 'Organization',
@@ -81,6 +81,7 @@ const breadcrumbSchema = {
   title={post.title}
   description={post.description}
   ogImage={post.image ? `https://vetreriamonferrina.com${post.image}` : undefined}
+  ogType="article"
 >
   <script is:inline type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
   <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
