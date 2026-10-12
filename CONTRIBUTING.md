@@ -31,6 +31,7 @@ La CI in `.github/workflows/ci.yml` esegue questi step nel job `Lint, Type Check
 
 | Comando locale                             | Step corrispondente in `ci.yml` |
 | ------------------------------------------ | ------------------------------- |
+| `npm audit signatures`                     | Package signatures              |
 | `npm run lint`                             | Lint                            |
 | `npm run format:check`                     | Format check                    |
 | `npm run check`                            | Type check                      |
@@ -59,6 +60,8 @@ Il ruleset blocca il pulsante di merge finché non passano cinque check:
 | `Dependency Review`           | job `dependency-review` di `ci.yml`, solo sulle PR |
 
 Ogni check è legato alla sua app nel ruleset: un job con lo stesso nome lanciato da un'altra app non lo soddisfa.
+
+In più il ruleset ha una regola di code scanning per zizmor (`zizmor.yml`): il merge è bloccato se la PR porta rilievi di gravità media o alta (livelli SARIF `warning` ed `error`). I rilievi bassi restano visibili nella scheda Security e non bloccano.
 
 ## Convenzioni
 
