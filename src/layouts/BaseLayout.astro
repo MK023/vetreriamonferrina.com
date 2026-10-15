@@ -19,7 +19,6 @@ import Chatbot from '../components/Chatbot.astro';
 import AvvisoChiusura from '../components/AvvisoChiusura.astro';
 import datiChiusure from '../data/chiusure.json';
 import { oggiInItalia, type Chiusura } from '../lib/chiusure';
-import SpeedInsights from '@vercel/speed-insights/astro';
 import openingHours from '../data/opening-hours.json';
 import { themeScript, themeScriptHash } from '../lib/csp';
 
@@ -201,7 +200,6 @@ const chiusureAttive = (datiChiusure as Chiusura[]).filter((c) => c.al >= oggi);
     <BottomNav />
     <CookieBanner />
     <Chatbot />
-    <SpeedInsights />
 
     <button type="button" class="back-to-top" aria-label="Torna in cima" data-back-to-top>
       <svg
