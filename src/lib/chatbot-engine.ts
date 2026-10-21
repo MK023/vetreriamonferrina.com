@@ -9,7 +9,7 @@ interface ChatNode {
 export interface ChatOption {
   label: string;
   next?: string;
-  action?: 'open_form' | 'open_contacts' | 'call_phone' | 'open_page';
+  action?: 'open_contacts' | 'call_phone' | 'open_page';
   param?: string;
 }
 
@@ -45,9 +45,5 @@ export class ChatbotEngine {
   restoreHistory(history: string[]): void {
     // Only restore valid node IDs that exist in the flow
     this.history = history.filter((id) => typeof id === 'string' && id in this.flow);
-  }
-
-  reset(): void {
-    this.history = [];
   }
 }

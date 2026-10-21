@@ -1,10 +1,9 @@
 # Dependabot version updates.
 #
 # Nota su cosa copre cosa: gli *alert di sicurezza* girano su tutto il repository
-# a prescindere da questo file — è il motivo per cui arrivavano PR su `sanity/`
-# anche quando qui c'era solo l'ecosistema npm di root. Gli *aggiornamenti di
-# versione*, invece, seguono solo quello che è dichiarato qui: prima di questo
-# file `sanity/` riceveva solo patch di sicurezza e le GitHub Actions nulla.
+# a prescindere da questo file. Gli *aggiornamenti di versione*, invece, seguono
+# solo quello che è dichiarato qui: senza il blocco delle GitHub Actions i pin
+# per SHA non verrebbero mai aggiornati.
 version: 2
 updates:
   # Dipendenze del sito.
@@ -12,6 +11,11 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    # Una versione appena pubblicata può essere malevola o rotta: si aspetta una
+    # settimana prima di proporla. Vale solo per gli aggiornamenti di versione, gli
+    # aggiornamenti di sicurezza non aspettano (doc GitHub, opzione cooldown).
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 10
     labels:
       - 'dependencies'
@@ -22,34 +26,28 @@ updates:
         update-types:
           - minor
           - patch
-
-  # Studio Sanity: progetto npm separato, con il suo lockfile. È buildato e
-  # deployato con `sanity deploy`, quindi è superficie di produzione a tutti gli
-  # effetti — ed è gattato in CI come il sito.
-  - package-ecosystem: 'npm'
-    directory: '/sanity'
-    schedule:
-      interval: 'weekly'
-    open-pull-requests-limit: 5
-    labels:
-      - 'dependencies'
-    groups:
-      sanity-minor-patch:
-        update-types:
-          - minor
-          - patch
+        # PR a parte: va aggiornata a mano anche l'immagine del container in e2e.yml, e
+        # finché non lo si fa il suo E2E è rosso; dentro il gruppo fermerebbe tutto il resto.
+        exclude-patterns:
+          - '@playwright/test'
 
   # GitHub Actions. Necessario perché i workflow sono pinnati per SHA: senza
   # questo blocco i pin non verrebbero mai aggiornati e il repo resterebbe
   # fermo a versioni vecchie per sempre — peggio dei tag mobili.
   - package-ecosystem: 'github-actions'
-    directory: '/'
+    # Con directory '/' Dependabot legge solo .github/workflows e un action.yml in
+    # radice: i pin della action composita del setup comune resterebbero fermi.
+    directories:
+      - '/'
+      - '/.github/actions/*'
     schedule:
       interval: 'weekly'
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     labels:
       - 'dependencies'
-      - 'github-actions'
+      - 'github_actions'
     groups:
       actions-all:
         patterns:

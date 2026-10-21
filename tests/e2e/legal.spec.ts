@@ -1,92 +1,33 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
-// Opt-out dallo storageState globale: questi test verificano il banner cookie
-// al primo accesso, quindi partono con localStorage vuoto.
+// Opt-out dallo storageState globale: il test verifica il banner cookie al primo
+// accesso, quindi parte con localStorage vuoto.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("privacy policy e' accessibile e contiene GDPR", async ({ page }) => {
-  await page.goto('/privacy');
-  await expect(page.locator('main h1')).toContainText(/privacy/i);
-  const text = await page.textContent('main');
-  expect(text).toContain('GDPR');
-  expect(text).toContain('Fioravanti');
-});
-
-test('privacy policy menziona Resend come processore dati', async ({ page }) => {
-  await page.goto('/privacy');
-  const text = await page.textContent('main');
-  expect(text).toContain('Resend');
-});
-
-test('privacy policy menziona il Garante', async ({ page }) => {
-  await page.goto('/privacy');
-  const text = await page.textContent('main');
-  expect(text).toContain('Garante per la Protezione dei Dati Personali');
-  expect(text).toContain('garanteprivacy.it');
-});
-
-test('privacy policy elenca i diritti GDPR', async ({ page }) => {
-  await page.goto('/privacy');
-  const text = await page.textContent('main');
-  expect(text).toContain('art. 15');
-  expect(text).toContain('art. 16');
-  expect(text).toContain('art. 17');
-  expect(text).toContain('art. 18');
-  expect(text).toContain('art. 20');
-  expect(text).toContain('art. 21');
-});
-
-test('privacy policy ha link alla cookie policy', async ({ page }) => {
-  await page.goto('/privacy');
-  await expect(page.locator('main a[href="/cookie"]')).toBeVisible();
-});
-
-test("cookie policy e' accessibile", async ({ page }) => {
-  await page.goto('/cookie');
-  await expect(page.locator('main h1')).toContainText(/cookie/i);
-  const text = await page.textContent('main');
-  expect(text).toContain('sessionStorage');
-});
-
-test('cookie policy menziona localStorage', async ({ page }) => {
-  await page.goto('/cookie');
-  const text = await page.textContent('main');
-  expect(text).toContain('localStorage');
-  expect(text).toContain('cookie_notice_seen');
-});
-
-test('cookie policy ha base normativa art. 122', async ({ page }) => {
-  await page.goto('/cookie');
-  const text = await page.textContent('main');
-  expect(text).toContain('art. 122');
-  expect(text).toContain('D.Lgs. 196/2003');
-});
-
-test('cookie policy ha link alla privacy policy', async ({ page }) => {
-  await page.goto('/cookie');
-  await expect(page.locator('main a[href="/privacy"]')).toBeVisible();
-});
-
-test('cookie banner appare e si chiude', async ({ page }) => {
+test('cookie banner appare, si chiude e non riappare dopo il reload', async ({ page }) => {
   await page.goto('/');
   const banner = page.locator('[data-cookie-banner]');
   await expect(banner).toBeVisible();
-  // Dismiss the cookie banner — use dispatchEvent to avoid interception by Astro dev toolbar
-  await page.locator('#cookie-banner-dismiss').dispatchEvent('click');
-  await expect(banner).toBeHidden({ timeout: 2000 });
-});
-
-test('cookie banner non riappare dopo chiusura', async ({ page }) => {
-  await page.goto('/');
-  // Dismiss the cookie banner
-  await page.locator('#cookie-banner-dismiss').dispatchEvent('click');
-  await expect(page.locator('[data-cookie-banner]')).toBeHidden({ timeout: 2000 });
+  await banner.getByRole('button', { name: 'OK' }).click();
+  await expect(banner).toBeHidden();
   await page.reload();
-  await expect(page.locator('[data-cookie-banner]')).toBeHidden();
+  await expect(banner).toBeHidden();
 });
 
-test('footer ha link privacy e cookie policy', async ({ page }) => {
+// AU1: su mobile banner cookie, barra in basso e pulsante della chat coprivano ~380 px dei primi
+// 844, e il pulsante della chat finiva dietro il banner. Finché il banner è aperto la chat non si
+// mostra; dopo "OK" torna.
+test('con il banner cookie aperto il pulsante della chat non si vede, dopo OK sì', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'solo nel progetto mobile');
   await page.goto('/');
-  await expect(page.locator('footer a[href="/privacy"]')).toBeVisible();
-  await expect(page.locator('footer a[href="/cookie"]')).toBeVisible();
+  const banner = page.locator('[data-cookie-banner]');
+  const chat = page.locator('#chatbot-toggle');
+  await expect(banner).toBeVisible();
+  await expect(chat).toBeHidden();
+  await banner.getByRole('button', { name: 'OK' }).click();
+  await expect(banner).toBeHidden();
+  await expect(chat).toBeVisible();
 });

@@ -10,7 +10,7 @@ export interface Service {
     | 'specchi'
     | 'personalizzazioni'
     | 'lavorazioni';
-  image?: string;
+  image: string;
 }
 
 export const services: Service[] = [
@@ -18,7 +18,7 @@ export const services: Service[] = [
   {
     slug: 'box-doccia',
     name: 'Box doccia',
-    description: 'Box doccia su misura in vetro temperato. Design moderno, sicurezza garantita.',
+    description: 'Box doccia su misura in vetro temperato di sicurezza. Design moderno.',
     category: 'box-doccia',
     image: '/images/services/box-doccia.webp',
   },
@@ -118,6 +118,14 @@ export const services: Service[] = [
     description: 'Porte interne in vetro, scorrevoli e a battente. Luce e design.',
     category: 'personalizzazioni',
     image: '/images/gallery/lavorazioni-porta-fiori.webp',
+  },
+  {
+    slug: 'lavori-personalizzati',
+    name: 'Lavori personalizzati',
+    description:
+      'Vetri e specchi con il logo o il disegno che scegli tu, su misura o di misura standard.',
+    category: 'personalizzazioni',
+    image: '/images/gallery/lavorazioni-vetro-insegna.webp',
   },
   // Lavorazioni
   {

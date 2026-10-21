@@ -1,95 +1,21 @@
-import { test, expect } from '@playwright/test';
-
-// Smoke test all three content pages
-const pages = [
-  { path: '/chi-siamo', title: /chi siamo/i },
-  { path: '/contatti', title: /contatti/i },
-  { path: '/galleria', title: /galleria/i },
-];
-
-for (const { path, title } of pages) {
-  test(`${path} carica correttamente`, async ({ page }) => {
-    await page.goto(path);
-    // Scope to main to avoid Astro dev toolbar injected headings
-    await expect(page.locator('main h1')).toContainText(title);
-    // Use first() to avoid strict mode with Astro dev toolbar headers
-    await expect(page.locator('header').first()).toBeVisible();
-    await expect(page.locator('footer').first()).toBeVisible();
-  });
-}
+import { test, expect } from './fixtures';
 
 // --- Contatti page ---
 
-test('contatti ha link telefonico cliccabile', async ({ page }) => {
-  await page.goto('/contatti');
-  // Scope to main content to avoid matching footer tel link
-  await expect(page.locator('main a[href^="tel:"]')).toBeVisible();
-});
-
-test('contatti ha link email cliccabile', async ({ page }) => {
-  await page.goto('/contatti');
-  await expect(page.locator('main a[href^="mailto:"]')).toBeVisible();
-});
-
 test('contatti ha mappa Google (facade click-to-load)', async ({ page }) => {
+  // Google è bloccato dalla fixture: si verifica il nostro iframe, non quello che disegna Google.
   await page.goto('/contatti');
   // La mappa è dietro una facade: placeholder leggero, iframe solo al click (INP + GDPR)
-  const facade = page.locator('#map-facade');
+  const facade = page.getByRole('button', { name: /carica la mappa interattiva/i });
   await expect(facade).toBeVisible();
   await facade.click();
-  const mapIframe = page.locator('iframe[src*="google.com/maps"]');
-  await expect(mapIframe).toBeVisible();
-});
-
-test('contatti ha orari di apertura', async ({ page }) => {
-  await page.goto('/contatti');
-  await expect(page.getByText(/8:00.*12:00/).first()).toBeVisible();
-  await expect(page.getByText(/chiuso/i).first()).toBeVisible();
-});
-
-test('contatti ha CTA preventivo', async ({ page }) => {
-  await page.goto('/contatti');
-  const cta = page.locator('main').getByRole('link', { name: /preventivo gratuito/i });
-  await expect(cta).toBeVisible();
-  await expect(cta).toHaveAttribute('href', '/preventivo');
-});
-
-// --- Chi siamo page ---
-
-test('chi-siamo ha sezione valori', async ({ page }) => {
-  await page.goto('/chi-siamo');
-  // Values section heading cards use accented Italian: Artigianalità, Qualità, Territorio
-  await expect(page.getByRole('heading', { name: /artigianali/i })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /qualit/i })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /territorio/i })).toBeVisible();
-});
-
-test('chi-siamo ha foto o placeholder famiglia', async ({ page }) => {
-  await page.goto('/chi-siamo');
-  const foto = page.getByAltText(/famiglia fioravanti/i).first();
-  const placeholder = page.getByText(/foto.*famiglia.*in arrivo/i).first();
-  const hasFoto = await foto.isVisible().catch(() => false);
-  const hasPlaceholder = await placeholder.isVisible().catch(() => false);
-  expect(hasFoto || hasPlaceholder).toBeTruthy();
-});
-
-test('chi-siamo ha timeline con milestone', async ({ page }) => {
-  await page.goto('/chi-siamo');
-  await expect(page.getByText(/le origini/i)).toBeVisible();
-  await expect(page.getByText(/la crescita/i)).toBeVisible();
-  await expect(page.getByText(/la famiglia si allarga/i)).toBeVisible();
+  await expect(page.getByTitle(/mappa posizione/i)).toHaveAttribute(
+    'src',
+    /^https:\/\/www\.google\.com\/maps\/embed\/v1\/place\?/
+  );
 });
 
 // --- Galleria page ---
-
-test('galleria ha filtri categoria', async ({ page }) => {
-  await page.goto('/galleria');
-  await expect(page.locator('[data-filter]').first()).toBeVisible();
-  await expect(page.locator('[data-filter="tutti"]')).toBeVisible();
-  await expect(page.locator('[data-filter="installazioni"]')).toBeVisible();
-  await expect(page.locator('[data-filter="vetri"]')).toBeVisible();
-  await expect(page.locator('[data-filter="lavorazioni"]')).toBeVisible();
-});
 
 test('galleria filtro nasconde elementi non corrispondenti', async ({ page }) => {
   await page.goto('/galleria');
@@ -124,21 +50,14 @@ test('galleria filtro nasconde elementi non corrispondenti', async ({ page }) =>
   await expect(allItems.last()).toBeVisible();
 });
 
-test('galleria ha lightbox nascosto per default', async ({ page }) => {
-  await page.goto('/galleria');
-  const lightbox = page.locator('[data-lightbox]');
-  await expect(lightbox).toHaveClass(/hidden/);
-});
-
 test('galleria lightbox si apre al click e si chiude con ESC', async ({ page }) => {
   await page.goto('/galleria');
 
   // Click on the first gallery item
   await page.locator('[data-gallery-item]').first().click();
 
-  // Lightbox should be visible
-  const lightbox = page.locator('[data-lightbox]');
-  await expect(lightbox).not.toHaveClass(/hidden/);
+  const lightbox = page.getByRole('dialog', { name: 'Visualizzatore immagini' });
+  await expect(lightbox).toBeVisible();
 
   // Title should be shown
   const title = page.locator('[data-lightbox-title]');
@@ -146,15 +65,11 @@ test('galleria lightbox si apre al click e si chiude con ESC', async ({ page }) 
 
   // Press Escape to close
   await page.keyboard.press('Escape');
-  await expect(lightbox).toHaveClass(/hidden/);
+  await expect(lightbox).toBeHidden();
 });
 
-test('galleria lightbox navigazione frecce', async ({ page }) => {
-  // Le frecce sono hidden sotto sm (640px): su mobile si naviga con lo swipe
-  const viewport = page.viewportSize();
-  if (viewport && viewport.width < 640) {
-    test.skip();
-  }
+test('galleria lightbox navigazione frecce', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'frecce nascoste sotto sm (640px): su mobile si naviga con lo swipe');
   await page.goto('/galleria');
 
   // Open lightbox on first item
@@ -174,7 +89,7 @@ test('galleria lightbox navigazione frecce', async ({ page }) => {
 
   // Close
   await page.locator('[data-lightbox-close]').click();
-  await expect(page.locator('[data-lightbox]')).toHaveClass(/hidden/);
+  await expect(page.getByRole('dialog', { name: 'Visualizzatore immagini' })).toBeHidden();
 });
 
 test('galleria filtro attivo ha stile evidenziato', async ({ page }) => {

@@ -3,7 +3,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CtaSection from '../../components/CtaSection.astro';
 import GlassPanel from '../../components/GlassPanel.astro';
-import { blogPosts } from '../../data/blog-posts';
+import { autoreBlog, blogPosts } from '../../data/blog-posts';
 export const prerender = true;
 
 export function getStaticPaths() {
@@ -48,8 +48,10 @@ const articleSchema = {
   description: post.description,
   datePublished: post.date,
   author: {
-    '@type': 'Person',
-    name: post.author ?? 'Giuseppe Fioravanti',
+    // Senza un autore proprio scrive la ditta: stesso nome dell'editore, così i motori di ricerca
+    // non vedono un'organizzazione "Staff Monferrina" diversa da Vetreria Monferrina.
+    '@type': post.author ? 'Person' : 'Organization',
+    name: post.author ?? 'Vetreria Monferrina',
     url: 'https://vetreriamonferrina.com/chi-siamo',
   },
   publisher: {
@@ -90,7 +92,7 @@ const breadcrumbSchema = {
     <div class="mx-auto max-w-7xl px-4 lg:px-8">
       <GlassPanel class="max-w-3xl">
         <nav class="mb-4 text-sm text-neutral-300" aria-label="Breadcrumb">
-          <a href="/blog" class="transition-colors hover:text-neutral-50">Blog</a>
+          <a href="/blog" class="inline-block py-1 transition-colors hover:text-neutral-50">Blog</a>
           <span class="mx-2">/</span>
           <span class="text-neutral-50">{post.title}</span>
         </nav>
@@ -159,7 +161,7 @@ const breadcrumbSchema = {
               >
                 La stesura di questo articolo è stata assistita da strumenti di intelligenza
                 artificiale. I contenuti tecnici sono verificati e approvati da{' '}
-                {post.author ?? 'Giuseppe Fioravanti'} prima della pubblicazione.
+                {post.author ?? autoreBlog} prima della pubblicazione.
               </p>
             )
           }
@@ -273,16 +275,12 @@ const breadcrumbSchema = {
 </style>
 
 <script>
-  let tocObserver: IntersectionObserver | null = null;
-
   function initBlogToc(): void {
-    if (tocObserver) tocObserver.disconnect();
-
     const links = document.querySelectorAll<HTMLAnchorElement>('.blog-toc-link');
     const headings = document.querySelectorAll<HTMLElement>('.blog-content h2[id]');
     if (!links.length || !headings.length) return;
 
-    tocObserver = new IntersectionObserver(
+    const tocObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -298,9 +296,8 @@ const breadcrumbSchema = {
       { rootMargin: '-20% 0px -60% 0px' }
     );
 
-    headings.forEach((heading) => tocObserver!.observe(heading));
+    headings.forEach((heading) => tocObserver.observe(heading));
   }
 
   initBlogToc();
-  document.addEventListener('astro:after-swap', initBlogToc);
 </script>

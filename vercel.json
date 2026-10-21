@@ -1,6 +1,10 @@
 {
+  "installCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR npm install",
+  "buildCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR npm run build",
   "redirects": [
     { "source": "/sitemap.xml", "destination": "/sitemap-index.xml", "statusCode": 301 },
+    { "source": "/preventivo", "destination": "/contatti", "statusCode": 301 },
+    { "source": "/preventivo/", "destination": "/contatti", "statusCode": 301 },
     { "source": "/images/gallery/(.*)", "destination": "/galleria", "statusCode": 301 },
     { "source": "/images/services/(.*)", "destination": "/servizi", "statusCode": 301 },
     { "source": "/(.+)/", "destination": "/$1", "statusCode": 301 }
@@ -20,8 +24,15 @@
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
+      "source": "/:path((?!_astro/|images/|fonts/|_vercel/).*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate, no-transform" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "https://vetreriamonferrina.com" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
@@ -31,12 +42,9 @@
         },
         {
           "key": "Strict-Transport-Security",
-          "value": "max-age=63072000; includeSubDomains; preload"
+          "value": "max-age=31536000; includeSubDomains"
         },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.sanity.io; font-src 'self'; connect-src 'self' https://api.open-meteo.com; frame-src https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-        }
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
       ]
     }
   ]

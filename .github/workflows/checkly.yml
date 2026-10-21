@@ -1,55 +1,45 @@
-name: Checkly
+name: Monitor Checkly
 
-# Monitoring as code: valida i check sulle PR e li deploya su Checkly al merge in main.
-# Gira solo quando cambiano le definizioni dei check (paths filter) per efficienza.
-# Se i secret non sono configurati, gli step si skippano: la CI resta verde.
+# Monitoring as code: quando il deploy di produzione è pronto deploya tutti i check su Checkly.
+# I check presuppongono la produzione (Worker) e non girano sulle PR: un `checkly test` contro la
+# produzione prima del merge ha mandato email vere alla vetreria (08/10/2026, #400). Se i secret
+# non sono configurati, lo step si skippa.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '__checks__/**'
-      - 'checkly.config.ts'
-      - '.github/workflows/checkly.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - '__checks__/**'
-      - 'checkly.config.ts'
-      - '.github/workflows/checkly.yml'
-
-concurrency:
-  group: checkly-${{ github.ref }}
-  cancel-in-progress: true
+  deployment_status:
 
 permissions:
   contents: read
 
 jobs:
-  checkly:
-    name: Test & Deploy Monitors
+  deploy:
+    # Dopo il deploy di produzione, non al push su main: Checkly esegue subito un check nuovo, e
+    # al push la produzione è ancora quella vecchia. Con #400 un check nuovo è partito alle
+    # 21:11:34 UTC, il deploy di produzione era pronto alle 21:12:43: 200 al posto di 403 e
+    # un'email vera alla vetreria. Gira su ogni deploy di produzione (il filtro sui file non
+    # vale per deployment_status): `checkly deploy` è idempotente e costa pochi secondi.
+    name: Deploy Monitors
+    if: >-
+      github.event_name == 'deployment_status' &&
+      github.event.deployment.environment == 'Production' &&
+      github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: checkly-deploy
+      cancel-in-progress: true
     env:
       CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
       CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
-          cache: npm
+          persist-credentials: false
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup
+        uses: ./.github/actions/setup
 
-      - name: Validate checks (PR)
-        if: ${{ github.event_name == 'pull_request' && env.CHECKLY_API_KEY != '' }}
-        run: npx checkly test
-
-      - name: Deploy checks (main)
-        if: ${{ github.event_name == 'push' && env.CHECKLY_API_KEY != '' }}
+      - name: Deploy checks
+        if: ${{ env.CHECKLY_API_KEY != '' }}
         run: npx checkly deploy --force

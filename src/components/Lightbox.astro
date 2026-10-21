@@ -18,7 +18,7 @@
 
   <button
     type="button"
-    class="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+    class="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
     aria-label="Chiudi"
     data-lightbox-close
   >
@@ -36,7 +36,7 @@
 
   <button
     type="button"
-    class="absolute left-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white sm:flex"
+    class="absolute left-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:flex"
     aria-label="Immagine precedente"
     data-lightbox-prev
   >
@@ -54,7 +54,7 @@
 
   <button
     type="button"
-    class="absolute right-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white sm:flex"
+    class="absolute right-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:flex"
     aria-label="Immagine successiva"
     data-lightbox-next
   >
@@ -74,27 +74,9 @@
     class="protected-img-wrap mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-4 py-16 sm:px-16 sm:py-8"
   >
     <div
-      class="flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden"
+      class="flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden opacity-100"
       data-lightbox-image
-      style="opacity: 1;"
     >
-      <div class="text-center text-neutral-400">
-        <svg
-          class="mx-auto h-16 w-16"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
-          ></path>
-        </svg>
-        <p class="mt-2 text-sm">Foto in arrivo</p>
-      </div>
     </div>
 
     <div
@@ -104,7 +86,7 @@
     >
       <button
         type="button"
-        class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white sm:hidden"
+        class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:hidden"
         aria-label="Immagine precedente"
         data-lightbox-prev-mobile
       >
@@ -130,7 +112,7 @@
 
       <button
         type="button"
-        class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white sm:hidden"
+        class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:hidden"
         aria-label="Immagine successiva"
         data-lightbox-next-mobile
       >

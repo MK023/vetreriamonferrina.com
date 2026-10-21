@@ -1,8 +1,12 @@
-name: CI
+name: 'Qualità: lint, tipi, test, build'
+
+# Qualità del codice, test e dipendenze introdotte dalla PR; gli E2E stanno in e2e.yml, sulla
+# preview Vercel. SAST: CodeQL e Semgrep dalle loro app. I nomi dei job sono quelli del ruleset
+# protect-main.
 
 on:
   push:
-    branches: [main, feat/**]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -23,24 +27,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-          cache: npm
+      - name: Setup
+        uses: ./.github/actions/setup
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Security audit
-        run: npm audit --omit=dev --audit-level=high
-
-      # Lo Studio e' deployato con "sanity deploy": va gattato come il sito.
-      # npm audit legge dal solo lockfile, quindi non serve installarlo.
-      - name: Security audit (Sanity Studio)
-        run: npm --prefix sanity audit --audit-level=high
+      # Firme del registry e provenienza dei pacchetti installati: una firma non valida fa rosso.
+      - name: Package signatures
+        run: npm audit signatures
 
       - name: Lint
         run: npm run lint
@@ -60,46 +54,14 @@ jobs:
       - name: Check internal links
         run: npm run check:links
 
-      - name: SonarCloud Scan
-        if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  e2e:
-    name: E2E (Playwright)
+  dependency-review:
+    name: Dependency Review
+    # Blocca le dipendenze vulnerabili che la PR introduce, transitive comprese;
+    # quelle già su main le segnala Dependabot. Lavora sul diff via API, senza checkout.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Upload report on failure
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
+      - name: Dependency Review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0

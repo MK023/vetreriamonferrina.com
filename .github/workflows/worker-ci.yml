@@ -1,4 +1,4 @@
-name: Worker CI
+name: Worker di manutenzione (Cloudflare)
 
 # Valida il maintenance-worker (compile esbuild + wrangler.toml: route, keep_vars,
 # compat-date) su ogni PR che lo tocca. Colma il buco della CI principale, che lint+
@@ -31,11 +31,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
 
       - name: Validate worker (compile + wrangler.toml)
-        run: npx --yes wrangler@4 deploy --dry-run --outdir /tmp/worker-build
+        # Versione esatta: npx scarica fuori dal lockfile, senza firme né Dependency Review; con
+        # `wrangler@4` ogni run poteva prendere una 4.x appena pubblicata. Si alza a mano.
+        run: npx --yes wrangler@4.147.0 deploy --dry-run --outdir /tmp/worker-build

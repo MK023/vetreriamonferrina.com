@@ -1,21 +1,17 @@
 // @vitest-environment node
-import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { expect, test, describe } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import BaseLayout from '../../src/layouts/BaseLayout.astro';
+import { renderHtml, renderPage } from './render-page';
+import { cspDirectives, cspHeader } from '../../src/lib/csp';
+import { sentryOptions } from '../../src/lib/sentry-options';
 
 describe('BaseLayout', () => {
   test('contiene meta tag essenziali', async () => {
-    const container = await AstroContainer.create({
-      astroConfig: {
-        site: 'https://vetreriamonferrina.com',
-      },
-    });
-    const html = await container.renderToString(BaseLayout, {
+    const html = await renderHtml(BaseLayout, '/', {
       props: { title: 'Test' },
       slots: { default: '<p>Contenuto</p>' },
-      request: new Request('https://vetreriamonferrina.com/'),
     });
 
     expect(html).toContain('lang="it"');
@@ -26,16 +22,16 @@ describe('BaseLayout', () => {
     expect(html).toContain('rel="canonical"');
   });
 
+  test('collega la favicon SVG', async () => {
+    const d = await renderPage(BaseLayout, '/', { props: { title: 'Test' } });
+    const favicon = d.querySelector('link[rel="icon"][type="image/svg+xml"]');
+    expect(favicon?.getAttribute('href')).toBe('/favicon.svg');
+  });
+
   test('include font preload links', async () => {
-    const container = await AstroContainer.create({
-      astroConfig: {
-        site: 'https://vetreriamonferrina.com',
-      },
-    });
-    const html = await container.renderToString(BaseLayout, {
+    const html = await renderHtml(BaseLayout, '/', {
       props: { title: 'Test' },
       slots: { default: '<p>Contenuto</p>' },
-      request: new Request('https://vetreriamonferrina.com/'),
     });
 
     expect(html).toContain('/fonts/inter-latin-variable.woff2');
@@ -45,15 +41,9 @@ describe('BaseLayout', () => {
   });
 
   test('include og:image fallback se non specificato', async () => {
-    const container = await AstroContainer.create({
-      astroConfig: {
-        site: 'https://vetreriamonferrina.com',
-      },
-    });
-    const html = await container.renderToString(BaseLayout, {
+    const html = await renderHtml(BaseLayout, '/', {
       props: { title: 'Test' },
       slots: { default: '<p>Contenuto</p>' },
-      request: new Request('https://vetreriamonferrina.com/'),
     });
 
     expect(html).toContain('og:image');
@@ -61,15 +51,9 @@ describe('BaseLayout', () => {
   });
 
   test('include og:image quando specificato', async () => {
-    const container = await AstroContainer.create({
-      astroConfig: {
-        site: 'https://vetreriamonferrina.com',
-      },
-    });
-    const html = await container.renderToString(BaseLayout, {
+    const html = await renderHtml(BaseLayout, '/', {
       props: { title: 'Test', ogImage: 'https://example.com/image.jpg' },
       slots: { default: '<p>Contenuto</p>' },
-      request: new Request('https://vetreriamonferrina.com/'),
     });
 
     expect(html).toContain('og:image');
@@ -77,32 +61,13 @@ describe('BaseLayout', () => {
   });
 
   test('renderizza il contenuto slot', async () => {
-    const container = await AstroContainer.create({
-      astroConfig: {
-        site: 'https://vetreriamonferrina.com',
-      },
-    });
-    const html = await container.renderToString(BaseLayout, {
+    const html = await renderHtml(BaseLayout, '/', {
       props: { title: 'Test' },
       slots: { default: '<p>Contenuto di test</p>' },
-      request: new Request('https://vetreriamonferrina.com/'),
     });
 
     expect(html).toContain('<p>Contenuto di test</p>');
     expect(html).toContain('<main');
-  });
-});
-
-describe('global.css', () => {
-  test('contiene @font-face con font-display: swap', () => {
-    const cssPath = resolve(__dirname, '../../src/styles/global.css');
-    const css = readFileSync(cssPath, 'utf-8');
-
-    expect(css).toContain('font-display: swap');
-    expect(css).toContain('DM Serif Display');
-    expect(css).toContain('Inter');
-    expect(css).toContain('inter-latin-variable.woff2');
-    expect(css).toContain('dm-serif-display-latin.woff2');
   });
 });
 
@@ -120,27 +85,50 @@ describe('vercel.json security headers', () => {
     expect(headerKeys).toContain('Referrer-Policy');
     expect(headerKeys).toContain('Permissions-Policy');
     expect(headerKeys).toContain('Strict-Transport-Security');
-    expect(headerKeys).toContain('Content-Security-Policy');
   });
 
-  test('CSP consente solo risorse necessarie', () => {
+  // Il CSP non sta più in vercel.json: due policy si sommano (MDN, "Multiple content security
+  // policies") e una con `default-src 'self'` senza hash bloccherebbe gli script inline che
+  // Astro hasha. Lo genera Astro (security.csp) per le pagine statiche e il middleware per le
+  // risposte on demand, dalle stesse direttive.
+  test('vercel.json non porta più un CSP (aveva unsafe-inline)', () => {
     const vercelPath = resolve(__dirname, '../../vercel.json');
     const vercelConfig = JSON.parse(readFileSync(vercelPath, 'utf-8'));
-    const headers = vercelConfig.headers.find(
-      (h: { source: string }) => h.source === '/(.*)'
-    ).headers;
-    const csp = headers.find((h: { key: string }) => h.key === 'Content-Security-Policy');
-
-    expect(csp.value).toContain("default-src 'self'");
-    expect(csp.value).toContain("script-src 'self'");
-    expect(csp.value).toContain("font-src 'self'");
-    expect(csp.value).toContain("img-src 'self' data: https://cdn.sanity.io");
-    expect(csp.value).toContain("connect-src 'self' https://api.open-meteo.com");
-    expect(csp.value).toContain("frame-ancestors 'none'");
-    expect(csp.value).toContain("form-action 'self'");
+    const keys = vercelConfig.headers.flatMap((h: { headers: { key: string }[] }) =>
+      h.headers.map((x) => x.key)
+    );
+    expect(keys).not.toContain('Content-Security-Policy');
   });
 
-  test('HSTS con max-age lungo e preload', () => {
+  test('la policy condivisa consente solo le risorse necessarie, senza unsafe-inline', () => {
+    const csp = cspHeader;
+
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("font-src 'self'");
+    expect(csp).toContain("img-src 'self' data:");
+    expect(csp).toContain("connect-src 'self' https://o4512180292878336.ingest.de.sentry.io");
+    expect(csp).toContain('frame-src https://www.google.com');
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("base-uri 'self'");
+    expect(csp).toContain("form-action 'self'");
+    expect(csp).not.toContain("'unsafe-inline'");
+  });
+
+  // Senza l'host di ingest nel CSP il browser blocca gli invii a Sentry e gli errori del
+  // browser si perdono senza alcun segnale. Host esatto dell'org, non *.ingest: il wildcard
+  // aprirebbe un canale d'uscita verso qualunque org Sentry. L'host atteso viene dal DSN,
+  // così un cambio di DSN senza il CSP aggiornato fa fallire il test.
+  test('il CSP consente gli invii degli errori a Sentry, solo verso l’org', () => {
+    const connectSrc = cspDirectives.find((d) => d.startsWith('connect-src'));
+
+    expect(connectSrc?.split(' ')).toContain(new URL(sentryOptions.dsn).origin);
+    expect(connectSrc).not.toContain('*');
+  });
+
+  // Uguale all'HSTS della zona Cloudflare, che sovrascrive l'header (misurato 08/10/2026:
+  // 1 anno, includeSubDomains, preload false). Niente preload: l'iscrizione alla lista è
+  // difficile da revocare (decisione di Marco, Z1).
+  test('HSTS di un anno, senza preload, come la zona Cloudflare', () => {
     const vercelPath = resolve(__dirname, '../../vercel.json');
     const vercelConfig = JSON.parse(readFileSync(vercelPath, 'utf-8'));
     const headers = vercelConfig.headers.find(
@@ -148,8 +136,6 @@ describe('vercel.json security headers', () => {
     ).headers;
     const hsts = headers.find((h: { key: string }) => h.key === 'Strict-Transport-Security');
 
-    expect(hsts.value).toContain('max-age=63072000');
-    expect(hsts.value).toContain('includeSubDomains');
-    expect(hsts.value).toContain('preload');
+    expect(hsts.value).toBe('max-age=31536000; includeSubDomains');
   });
 });

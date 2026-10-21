@@ -1,14 +1,28 @@
 ---
 // src/layouts/BaseLayout.astro
 import '../styles/global.css';
-import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import {
+  email,
+  latitude,
+  longitude,
+  partitaIva,
+  phoneE164,
+  postalCode,
+  province,
+  ragioneSociale,
+  street,
+  town,
+} from '../data/contatti';
 import BottomNav from '../components/BottomNav.astro';
 import CookieBanner from '../components/CookieBanner.astro';
 import Chatbot from '../components/Chatbot.astro';
-import SpeedInsights from '@vercel/speed-insights/astro';
+import AvvisoChiusura from '../components/AvvisoChiusura.astro';
+import datiChiusure from '../data/chiusure.json';
+import { oggiInItalia, type Chiusura } from '../lib/chiusure';
 import openingHours from '../data/opening-hours.json';
+import { themeScript, themeScriptHash } from '../lib/csp';
 
 export interface Props {
   title: string;
@@ -34,51 +48,41 @@ const canonicalURL = Astro.site
   ? new URL(Astro.url.pathname, Astro.site)
   : new URL(Astro.url.pathname, Astro.url.origin);
 
-// openingHoursSpecification derivato da opening-hours.json (unica fonte di verità:
-// stessi period consumati dalla pagina contatti → niente drift schema/pagina).
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const specsByTime = new Map<string, { opens: string; closes: string; days: string[] }>();
-for (const p of openingHours.periods) {
-  // Period malformato = build failure rumorosa (JSON.stringify dropperebbe
-  // opens/closes undefined producendo schema invalido in silenzio).
-  if (!p.open || !p.close) {
-    throw new Error(`opening-hours.json: period malformato per day ${p.day}`);
-  }
-  const key = `${p.open}-${p.close}`;
-  const spec = specsByTime.get(key) ?? { opens: p.open, closes: p.close, days: [] };
-  spec.days.push(DAY_NAMES[p.day % 7]);
-  specsByTime.set(key, spec);
-}
-const openingHoursSpecification = [...specsByTime.values()].map((s) => ({
+// Orari del JSON-LD scritti a mano in opening-hours.json, accanto a quelli della pagina contatti
+// (schedule): un cambio d'orario va fatto in tutti e due i punti. Il tipo fa fallire `astro check` se a un
+// gruppo manca opens o closes: senza, il JSON-LD uscirebbe incompleto in silenzio.
+const orari: { dayOfWeek: string[]; opens: string; closes: string }[] =
+  openingHours.openingHoursSpecification;
+const openingHoursSpecification = orari.map((s) => ({
   '@type': 'OpeningHoursSpecification',
-  dayOfWeek: s.days,
-  opens: s.opens,
-  closes: s.closes,
+  ...s,
 }));
 
 // JSON-LD structured data for LocalBusiness
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
-  name: 'Vetreria Monferrina di Fioravanti Giuseppe',
+  name: ragioneSociale,
+  legalName: ragioneSociale,
+  vatID: `IT${partitaIva}`,
   description:
     'Vetreria storica a Casale Monferrato. Box doccia, parapetti, pensiline, vetri camera, specchi e lavorazioni su misura.',
   '@id': 'https://vetreriamonferrina.com',
   url: 'https://vetreriamonferrina.com',
-  telephone: '+390142563728',
-  email: 'vetreriamonferrina@gmail.com',
+  telephone: phoneE164,
+  email,
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Strada Statale 31, 98/C',
-    addressLocality: 'Casale Monferrato',
-    postalCode: '15033',
-    addressRegion: 'AL',
+    streetAddress: street,
+    addressLocality: town,
+    postalCode,
+    addressRegion: province,
     addressCountry: 'IT',
   },
   geo: {
     '@type': 'GeoCoordinates',
-    latitude: 45.1334,
-    longitude: 8.4525,
+    latitude,
+    longitude,
   },
   openingHoursSpecification,
   priceRange: '$$',
@@ -107,6 +111,13 @@ const jsonLd = {
     ],
   },
 };
+// Hash dello script del tema nel CSP della pagina (security.csp): vedi src/lib/csp.ts.
+Astro.csp?.insertScriptHash(themeScriptHash);
+
+// Le chiusure già finite al momento del build restano fuori: senza chiusure attive la pagina
+// non porta né l'avviso né il suo script.
+const oggi = oggiInItalia();
+const chiusureAttive = (datiChiusure as Chiusura[]).filter((c) => c.al >= oggi);
 ---
 
 <!doctype html>
@@ -159,16 +170,8 @@ const jsonLd = {
       type="font/woff2"
       crossorigin
     />
-    <ClientRouter />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-
-    <script is:inline>
-      (function () {
-        const h = new Date().getHours();
-        const dark = window.matchMedia('(prefers-color-scheme: dark)').matches || h >= 20 || h < 7;
-        if (dark) document.documentElement.setAttribute('data-theme', 'dark');
-      })();
-    </script>
+    <script is:inline set:html={themeScript} />
   </head>
   <body class="font-body text-neutral-800 bg-neutral-50 antialiased overflow-x-hidden">
     <a
@@ -180,15 +183,15 @@ const jsonLd = {
 
     <div class="scroll-progress" aria-hidden="true"></div>
 
+    {chiusureAttive.length > 0 && <AvvisoChiusura chiusure={chiusureAttive} />}
     <Header />
-    <main id="main-content" style="view-transition-name: main-content;">
+    <main id="main-content" class="[view-transition-name:main-content]">
       <slot />
     </main>
     <Footer />
     <BottomNav />
     <CookieBanner />
     <Chatbot />
-    <SpeedInsights />
 
     <button type="button" class="back-to-top" aria-label="Torna in cima" data-back-to-top>
       <svg
@@ -230,14 +233,7 @@ const jsonLd = {
     </script>
 
     <script>
-      let globalCleanup: (() => void) | null = null;
-
       function initGlobalUI(): void {
-        if (globalCleanup) {
-          globalCleanup();
-          globalCleanup = null;
-        }
-
         // --- Scroll Reveal (IntersectionObserver) ---
         const revealEls = document.querySelectorAll<HTMLElement>('[data-reveal]');
         revealEls.forEach((el) => el.classList.add('reveal-ready'));
@@ -254,6 +250,23 @@ const jsonLd = {
           { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
         );
         revealEls.forEach((el) => revealObserver.observe(el));
+
+        // --- Riflesso .glass-shine (global.css): riparte ogni volta che l'elemento torna a metà
+        // nello schermo ---
+        const shineObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              const el = entry.target as HTMLElement;
+              el.classList.remove('drawn');
+              if (entry.isIntersecting) {
+                void el.offsetWidth; // riparte l'animazione
+                el.classList.add('drawn');
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+        document.querySelectorAll('.glass-shine').forEach((el) => shineObserver.observe(el));
 
         // --- Scroll Progress Bar ---
         const progressBar = document.querySelector<HTMLElement>('.scroll-progress');
@@ -284,50 +297,45 @@ const jsonLd = {
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
 
-        function onBackToTop() {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        if (backToTop) {
-          backToTop.addEventListener('click', onBackToTop);
-        }
-
-        globalCleanup = () => {
-          revealObserver.disconnect();
-          window.removeEventListener('scroll', onScroll);
-          if (backToTop) backToTop.removeEventListener('click', onBackToTop);
-        };
+        backToTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
       }
 
-      document.addEventListener('astro:page-load', initGlobalUI);
+      initGlobalUI();
     </script>
 
     <script>
-      function applyTheme(): void {
-        const h = new Date().getHours();
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const nightTime = h >= 20 || h < 7;
-        const dark = systemDark || nightTime;
+      // Tema: la regola (scelta dell'interruttore, altrimenti automatico) è window.__temaScuro,
+      // definita da themeScript (src/lib/csp.ts) prima del primo disegno. Prima di AU1 (A10) non
+      // si poteva cambiare: alle 21 chi aveva il sistema chiaro vedeva il tema scuro.
+      const temaScuro = (window as unknown as { __temaScuro: () => boolean }).__temaScuro;
+      const toggle = document.querySelector('[data-theme-toggle]');
+
+      function setTheme(dark: boolean): void {
         if (dark) {
           document.documentElement.setAttribute('data-theme', 'dark');
         } else {
           document.documentElement.removeAttribute('data-theme');
         }
+        toggle?.setAttribute('aria-pressed', String(dark));
       }
 
-      // One-time setup: system theme listener + interval + view transition handler
-      const win = window as Window & { __themeInit?: boolean };
-      if (!win.__themeInit) {
-        win.__themeInit = true;
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-        setInterval(applyTheme, 15 * 60 * 1000);
-        document.addEventListener('astro:before-swap', ((e: Event & { newDocument: Document }) => {
-          const theme = document.documentElement.getAttribute('data-theme');
-          if (theme) {
-            e.newDocument.documentElement.setAttribute('data-theme', theme);
-          }
-        }) as EventListener);
+      function applyTheme(): void {
+        setTheme(temaScuro());
       }
-      document.addEventListener('astro:page-load', applyTheme);
+
+      toggle?.addEventListener('click', () => {
+        const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+        try {
+          localStorage.setItem('theme', dark ? 'dark' : 'light');
+        } catch {
+          // Senza storage la scelta vale fino al prossimo cambio di pagina.
+        }
+        setTheme(dark);
+      });
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+      setInterval(applyTheme, 15 * 60 * 1000);
+      applyTheme();
     </script>
   </body>
 </html>

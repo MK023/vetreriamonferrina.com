@@ -3,29 +3,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import CtaSection from '../components/CtaSection.astro';
 import GlassPanel from '../components/GlassPanel.astro';
 import ProtectedImage from '../components/ProtectedImage.astro';
-import { fetchWithFallback, queries, urlFor } from '../lib/sanity';
+import CarouselPause from '../components/CarouselPause.astro';
 export const prerender = true;
 
-// Fetch about page content from Sanity; null means use hardcoded fallback below
-interface SanityImage {
-  _type: 'image';
-  asset: { _ref: string };
-}
-interface SanityAboutPage {
-  title?: string;
-  intro?: string;
-  teamPhotos?: SanityImage[];
-}
-const aboutData = await fetchWithFallback<SanityAboutPage | null>(queries.aboutPage, null);
-
-// Use Sanity data if available, otherwise keep static defaults
-const heroTitle = aboutData?.title || 'Chi siamo';
+const heroTitle = 'Chi siamo';
 const heroIntro =
-  aboutData?.intro ||
   'Giuseppe, Debora e il loro laboratorio: dal cuore di Casale Monferrato, artigiani del vetro da oltre 40 anni.';
-const familyPhoto = aboutData?.teamPhotos?.[0]
-  ? urlFor(aboutData.teamPhotos[0]).width(800).format('webp').url()
-  : '';
+
+// Foto del carosello del laboratorio: la traccia le ripete due volte per il giro infinito, e la
+// copia è nascosta ai lettori di schermo e, su mobile, anche a vista (global.css, AU1).
+const labPhotos = [
+  {
+    src: '/images/lab/operaio-lastra.webp',
+    alt: 'Operaio che movimenta una grande lastra in laboratorio',
+  },
+  { src: '/images/lab/macchina-taglio.webp', alt: 'Macchina da taglio automatica per lastre' },
+  {
+    src: '/images/lab/lavorazione-blindato.webp',
+    alt: 'Mastro vetraio al lavoro su lastra blindata',
+  },
+  {
+    src: '/images/lab/lavorazione-stratificato.webp',
+    alt: 'Lavorazione vetro stratificato su macchinario',
+  },
+  { src: '/images/lab/magazzino-lastre.webp', alt: 'Magazzino lastre con rack di stoccaggio' },
+  {
+    src: '/images/lab/banco-grandi-lastre-2.webp',
+    alt: 'Banco delle grandi lastre con carroponte',
+  },
+  {
+    src: '/images/lab/squadra-laboratorio.webp',
+    alt: 'La squadra della Vetreria Monferrina in un momento di pausa in laboratorio',
+  },
+];
 ---
 
 <BaseLayout
@@ -71,23 +81,11 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
           </p>
         </div>
 
-        {
-          familyPhoto ? (
-            <ProtectedImage
-              src={familyPhoto}
-              alt="La famiglia Fioravanti — Giuseppe, Debora, Mirco, Fabiana e Martina"
-              wrapperClass="aspect-video rounded-2xl overflow-hidden"
-            />
-          ) : (
-            <div
-              class="flex aspect-video items-center justify-center rounded-2xl bg-neutral-200 text-neutral-800"
-              role="img"
-              aria-label="Foto della famiglia Fioravanti"
-            >
-              <p class="text-sm font-medium">Foto di famiglia in arrivo</p>
-            </div>
-          )
-        }
+        <ProtectedImage
+          src="/images/about/famiglia-fioravanti.webp"
+          alt="La famiglia Fioravanti — Giuseppe, Debora, Mirco, Fabiana e Martina"
+          wrapperClass="aspect-video rounded-2xl overflow-hidden"
+        />
       </div>
     </div>
   </section>
@@ -314,10 +312,10 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
             </div>
             <h3 class="mt-4 font-heading text-xl text-primary">Territorio</h3>
             <p class="mt-2 text-neutral-800">
-              Radicati a Casale Monferrato, serviamo con orgoglio il Monferrato e tutto il Piemonte.
-              Il legame con il territorio è la nostra forza. Orgogliosi sponsor del <strong
+              Radicati a Casale Monferrato, serviamo con orgoglio il Monferrato, il Piemonte e la
+              Lombardia. Il legame con il territorio è la nostra forza. Orgogliosi sponsor del <strong
                 class="font-semibold text-neutral-900">Casale F.B.C.</strong
-              >
+              > e del <strong class="font-semibold text-neutral-900">Popolo Calcio</strong>
             </p>
           </div>
         </div>
@@ -363,99 +361,19 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
       </h2>
 
       <div
-        class="lab-carousel mt-8 overflow-hidden"
+        class="auto-carousel relative mt-8 overflow-hidden"
         role="region"
         aria-label="Foto del laboratorio"
         aria-roledescription="carousel"
-        style="position: relative;"
       >
-        <button
-          type="button"
-          class="lab-pause-btn absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white"
-          aria-label="Metti in pausa il carosello"
-          data-lab-pause
-        >
-          <svg
-            class="h-4 w-4"
-            data-pause-icon
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <rect x="6" y="4" width="4" height="16"></rect>
-            <rect x="14" y="4" width="4" height="16"></rect>
-          </svg>
-          <svg
-            class="hidden h-4 w-4"
-            data-play-icon
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <polygon points="5,3 19,12 5,21"></polygon>
-          </svg>
-        </button>
-        <div class="lab-track flex gap-6">
+        <CarouselPause />
+        <div class="auto-carousel-track flex gap-6">
           {
-            [
-              {
-                src: '/images/lab/operaio-lastra.webp',
-                alt: 'Operaio che movimenta una grande lastra in laboratorio',
-              },
-              {
-                src: '/images/lab/macchina-taglio.webp',
-                alt: 'Macchina da taglio automatica per lastre',
-              },
-              {
-                src: '/images/lab/lavorazione-blindato.webp',
-                alt: 'Mastro vetraio al lavoro su lastra blindata',
-              },
-              {
-                src: '/images/lab/lavorazione-stratificato.webp',
-                alt: 'Lavorazione vetro stratificato su macchinario',
-              },
-              {
-                src: '/images/lab/magazzino-lastre.webp',
-                alt: 'Magazzino lastre con rack di stoccaggio',
-              },
-              {
-                src: '/images/lab/banco-grandi-lastre-2.webp',
-                alt: 'Banco delle grandi lastre con carroponte',
-              },
-              {
-                src: '/images/lab/squadra-laboratorio.webp',
-                alt: 'La squadra della Vetreria Monferrina in un momento di pausa in laboratorio',
-              },
-              {
-                src: '/images/lab/operaio-lastra.webp',
-                alt: 'Operaio che movimenta una grande lastra in laboratorio',
-              },
-              {
-                src: '/images/lab/macchina-taglio.webp',
-                alt: 'Macchina da taglio automatica per lastre',
-              },
-              {
-                src: '/images/lab/lavorazione-blindato.webp',
-                alt: 'Mastro vetraio al lavoro su lastra blindata',
-              },
-              {
-                src: '/images/lab/lavorazione-stratificato.webp',
-                alt: 'Lavorazione vetro stratificato su macchinario',
-              },
-              {
-                src: '/images/lab/magazzino-lastre.webp',
-                alt: 'Magazzino lastre con rack di stoccaggio',
-              },
-              {
-                src: '/images/lab/banco-grandi-lastre-2.webp',
-                alt: 'Banco delle grandi lastre con carroponte',
-              },
-              {
-                src: '/images/lab/squadra-laboratorio.webp',
-                alt: 'La squadra della Vetreria Monferrina in un momento di pausa in laboratorio',
-              },
-            ].map((photo) => (
-              <div class="w-80 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-surface shadow-sm sm:w-96">
+            [...labPhotos, ...labPhotos].map((photo, n) => (
+              <div
+                aria-hidden={n >= labPhotos.length ? 'true' : undefined}
+                class="w-80 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-surface shadow-sm sm:w-96"
+              >
                 <ProtectedImage src={photo.src} alt={photo.alt} wrapperClass="aspect-[4/3]" />
               </div>
             ))
@@ -488,23 +406,6 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
       transform-origin: top;
     }
 
-    /* Lab photo carousel — JS sets --scroll-width for pixel-perfect loop */
-    .lab-track {
-      animation: lab-scroll var(--scroll-duration, 30s) linear infinite;
-      will-change: transform;
-    }
-    .lab-carousel:hover .lab-track {
-      animation-play-state: paused;
-    }
-    @keyframes lab-scroll {
-      0% {
-        transform: translate3d(0, 0, 0);
-      }
-      100% {
-        transform: translate3d(var(--scroll-width, -50%), 0, 0);
-      }
-    }
-
     /* Respect users who prefer reduced motion */
     @media (prefers-reduced-motion: reduce) {
       [data-reveal-dot].reveal-ready {
@@ -514,27 +415,11 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
       [data-timeline-line] {
         transform: scaleY(1);
       }
-      .lab-track {
-        animation: none;
-      }
-      .lab-carousel {
-        overflow-x: auto;
-        scrollbar-width: thin;
-        scrollbar-color: var(--color-neutral-200) transparent;
-      }
     }
   </style>
 
   <script>
-    let cleanupFn: (() => void) | null = null;
-
     function initTimelineEffects(): void {
-      // Cleanup previous instance (View Transitions navigation)
-      if (cleanupFn) {
-        cleanupFn();
-        cleanupFn = null;
-      }
-
       const dotEls = document.querySelectorAll<HTMLElement>('[data-reveal-dot]');
       const line = document.querySelector<HTMLElement>('[data-timeline-line]');
       const container = document.querySelector<HTMLElement>('[data-timeline]');
@@ -559,11 +444,10 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
       dotEls.forEach((el) => observer.observe(el));
 
       // Timeline line grows with scroll progress
-      let scrollHandler: (() => void) | null = null;
       if (line && container) {
         line.style.setProperty('--progress', '0');
         let ticking = false;
-        scrollHandler = () => {
+        const scrollHandler = () => {
           if (!ticking) {
             requestAnimationFrame(() => {
               const rect = container.getBoundingClientRect();
@@ -578,54 +462,8 @@ const familyPhoto = aboutData?.teamPhotos?.[0]
         window.addEventListener('scroll', scrollHandler, { passive: true });
         scrollHandler();
       }
-
-      cleanupFn = () => {
-        observer.disconnect();
-        if (scrollHandler) {
-          window.removeEventListener('scroll', scrollHandler);
-        }
-      };
     }
 
-    document.addEventListener('astro:page-load', initTimelineEffects);
-
-    // Lab carousel: measure exact scroll width for seamless loop
-    function initLabCarousel(): void {
-      const track = document.querySelector<HTMLElement>('.lab-track');
-      if (!track) return;
-      const children = Array.from(track.children) as HTMLElement[];
-      const halfCount = children.length / 2;
-      if (halfCount < 1) return;
-
-      const gap = parseFloat(getComputedStyle(track).gap) || 0;
-      let setWidth = 0;
-      for (let i = 0; i < halfCount; i++) {
-        setWidth += children[i].offsetWidth + gap;
-      }
-
-      track.style.setProperty('--scroll-width', `-${setWidth}px`);
-      const speed = setWidth / 50;
-      track.style.setProperty('--scroll-duration', `${speed}s`);
-
-      // Pause/play button
-      const pauseBtn = document.querySelector<HTMLButtonElement>('[data-lab-pause]');
-      if (!pauseBtn) return;
-
-      const pauseIcon = pauseBtn.querySelector('[data-pause-icon]') as SVGElement;
-      const playIcon = pauseBtn.querySelector('[data-play-icon]') as SVGElement;
-      let isPaused = false;
-
-      pauseBtn.addEventListener('click', () => {
-        isPaused = !isPaused;
-        track.style.animationPlayState = isPaused ? 'paused' : 'running';
-        pauseIcon.classList.toggle('hidden', isPaused);
-        playIcon.classList.toggle('hidden', !isPaused);
-        pauseBtn.setAttribute(
-          'aria-label',
-          isPaused ? 'Riprendi il carosello' : 'Metti in pausa il carosello'
-        );
-      });
-    }
-    document.addEventListener('astro:page-load', initLabCarousel);
+    initTimelineEffects();
   </script>
 </BaseLayout>

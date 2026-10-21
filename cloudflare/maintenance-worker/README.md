@@ -1,6 +1,6 @@
 # Maintenance Mode Worker
 
-Cloudflare Worker davanti a vetreriamonferrina.com. Fa due cose: la modalità manutenzione e l'origin lockdown. Il codice sta in `src/index.ts`, la configurazione in `wrangler.toml`.
+Cloudflare Worker davanti a vetreriamonferrina.com. Fa due cose: la modalità manutenzione e il passthrough verso Vercel con il bypass della Vercel Authentication. Il codice sta in `src/index.ts`, la configurazione in `wrangler.toml`.
 
 Le route in `wrangler.toml` intercettano tutto il traffico di `vetreriamonferrina.com/*` e `www.vetreriamonferrina.com/*`. L'origin è la costante `ORIGIN` nel sorgente, oggi `https://vetreriamonferrina.vercel.app`: cambiare progetto Vercel significa modificare quella riga.
 
@@ -12,9 +12,7 @@ flowchart TD
     B -->|"no"| P["passthrough verso l'origin"]
     B -->|"sì"| C{"path in allowlist?"}
     C -->|"sì"| P
-    C -->|"no"| D{"path inizia<br/>con /api/?"}
-    D -->|"sì"| E["JSON 503<br/>Retry-After 3600"]
-    D -->|"no"| F["fetch ORIGIN/maintenance"]
+    C -->|"no"| F["fetch ORIGIN/maintenance"]
     F --> G["risposta 503 HTML<br/>Cache-Control no-store<br/>x-maintenance on"]
     P --> H["risposta dell'origin con<br/>x-worker active, x-maintenance off"]
 ```
@@ -23,25 +21,15 @@ Qualunque eccezione nel `fetch` viene catturata e produce un 502 di testo con `R
 
 ## Il passthrough non è trasparente
 
-Quando la manutenzione è spenta il worker inoltra la richiesta all'origin, ma la modifica in cinque punti.
+Quando la manutenzione è spenta il worker inoltra la richiesta all'origin, ma cambia sia la richiesta sia la risposta.
 
-Sulla richiesta in uscita imposta l'header `x-origin-verify` con `ORIGIN_VERIFY_SECRET`, usando `.set()` e non `.append()`, così un valore falso mandato dal client viene sovrascritto. Usa `redirect: 'manual'`, perché i 3xx dell'origin (trailing slash, sitemap, vecchi `/images/*`) devono arrivare al client come redirect veri invece che mascherati da 200.
+Sulla richiesta in uscita toglie gli header `x-vercel-*` del visitatore e i parametri `x-vercel-*` della query: sono istruzioni per Vercel, e accanto al bypass del worker varrebbero come sue (per esempio `x-vercel-set-bypass-cookie` farebbe coniare a Vercel un cookie che contiene il segreto). Il nome si confronta decodificato e senza distinguere maiuscole; gli altri parametri della query arrivano all'origin identici. Poi imposta l'header `x-vercel-protection-bypass` con `VERCEL_AUTOMATION_BYPASS_SECRET`, usando `.set()` e non `.append()`, così un valore falso mandato dal client viene sovrascritto. Usa `redirect: 'manual'`, perché i 3xx dell'origin (trailing slash, sitemap, vecchi `/images/*`) devono arrivare al client come redirect veri invece che mascherati da 200.
 
-Sulla risposta riscrive l'header `Location` quando punta all'origin Vercel, sostituendolo con l'host pubblico richiesto dal client: il confronto è fatto sull'origin parsato, non con `startsWith`. Aggiunge `Strict-Transport-Security` se manca, perché Vercel non lo mette su tutte le 3xx. Infine imposta `x-maintenance: off` e `x-worker: active`, che sono gli header su cui si basa il monitor Checkly `cloudflare-worker-active`.
+Sulla risposta toglie `set-cookie`: il sito non imposta cookie, e l'unico che l'origin può mandare è il `_vercel_jwt` di Vercel Authentication, che darebbe al visitatore l'accesso diretto all'alias `vercel.app`. Riscrive l'header `Location` quando punta all'origin Vercel, sostituendolo con l'host pubblico richiesto dal client: il confronto è fatto sull'origin parsato, non con `startsWith`. Aggiunge `Strict-Transport-Security` se manca, perché Vercel non lo mette su tutte le 3xx. Infine imposta `x-maintenance: off` e `x-worker: active`, che sono gli header su cui si basa il monitor Checkly `cloudflare-worker-active`, e `x-worker-filtered: 1` quando ha tolto almeno un'istruzione `x-vercel-*`, su cui si basa il monitor `worker-filters-vercel-instructions`.
 
-## Origin lockdown
+## Vercel Authentication
 
-L'URL `*.vercel.app` è pubblico e bypasserebbe WAF e rate-limit di Cloudflare. Il worker timbra ogni richiesta verso l'origin con `x-origin-verify`, e il middleware Astro (`src/middleware.ts`) risponde 403 in produzione a chi non ce l'ha.
-
-Lo stesso valore deve esistere in tre posti. Se uno dei tre va fuori sincrono il form preventivi inizia a rispondere 403.
-
-| Dove                             | Come si imposta                                              |
-| -------------------------------- | ------------------------------------------------------------ |
-| Worker Cloudflare                | Settings, Variables and Secrets, come Secret (non variabile) |
-| Vercel, ambiente Production      | Settings, Environment Variables                              |
-| Checkly, per il monitor dell'API | variabile d'ambiente `ORIGIN_VERIFY_SECRET`                  |
-
-Anche il fetch della pagina di manutenzione passa dal lockdown: senza il segreto il middleware la respingerebbe e la pagina di manutenzione risulterebbe rotta.
+Il progetto Vercel protegge tutte le deployment, dominio pubblico compreso: senza `x-vercel-protection-bypass` l'origin risponde con la pagina di login Vercel, e il worker la passerebbe ai visitatori. Il secret `VERCEL_AUTOMATION_BYPASS_SECRET` del worker si imposta da Settings, Variables and Secrets, come Secret; dove vive il valore e come si ruota sta nel README della repo, sezione "Vercel Authentication".
 
 ## Allowlist durante la manutenzione
 
@@ -51,11 +39,11 @@ Con la manutenzione attiva questi path passano comunque all'origin, altrimenti l
 - i prefissi `/_astro/`, `/images/`, `/fonts/`, `/favicon`
 - le estensioni `.svg`, `.png`, `.webp`, `.woff2`, `.ico`
 
-Tutto ciò che inizia per `/api/` riceve invece un JSON 503. Il resto riceve la pagina `/maintenance` con status 503.
+Il resto riceve la pagina `/maintenance` con status 503.
 
 ## Security header
 
-Le risposte generate dal worker (il 503 di manutenzione, il JSON 503 delle API, il 502 di fallback) non passano da `vercel.json`, quindi il worker aggiunge da sé `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` e una `Content-Security-Policy` allineata a quella del sito.
+Le risposte generate dal worker (il 503 di manutenzione e il 502 di fallback) non passano da `vercel.json`, quindi il worker aggiunge da sé `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` e una `Content-Security-Policy`. Il 503 usa la CSP con cui l'origin serve `/maintenance`, cioè quella che Astro genera per quella pagina, con gli hash dei suoi script inline. Il 502, e il 503 se l'origin non manda la CSP, usano una CSP di ripiego senza `'unsafe-inline'`: con il ripiego non girano gli script inline della pagina di manutenzione (il tema chiaro o scuro e Sentry; misurato il 14/10/2026), ma il testo è HTML statico e si legge. I tre casi li fissano gli unit test in `tests/unit/maintenance-worker.test.ts`.
 
 ## Toggle manutenzione
 
@@ -69,13 +57,13 @@ Il Worker è collegato a GitHub tramite Cloudflare Workers Builds: ogni push su 
 
 `keep_vars = true` nel `wrangler.toml` preserva le variabili impostate da dashboard, `MAINTENANCE_ENABLED` in primo luogo. Senza quella riga un deploy le riporterebbe a quelle del toml, spegnendo il toggle. I secret non vengono mai toccati dai deploy.
 
-Un `npx wrangler login && npx wrangler deploy` dalla cartella funziona, ma è un deploy dal sorgente locale e non da `main`: va usato solo per rimettere in piedi il worker, verificando prima che `ORIGIN_VERIFY_SECRET` esista già come Secret sul worker, perché il deploy non lo crea.
+Un `npx wrangler login && npx wrangler deploy` dalla cartella funziona, ma è un deploy dal sorgente locale e non da `main`: va usato solo per rimettere in piedi il worker, verificando prima che `VERCEL_AUTOMATION_BYPASS_SECRET` esista già come Secret sul worker, perché il deploy non lo crea.
 
 ## Verifiche automatiche
 
-Il workflow `.github/workflows/worker-ci.yml` gira su ogni PR che tocca questa cartella ed esegue `npx wrangler@4 deploy --dry-run`, che compila il sorgente e valida `wrangler.toml` (route, `keep_vars`, compatibility date) in locale, senza contattare Cloudflare e senza segreti.
+Il workflow `.github/workflows/worker-ci.yml` gira su ogni PR che tocca questa cartella ed esegue `npx wrangler@4.147.0 deploy --dry-run` (versione esatta, si alza a mano), che compila il sorgente e valida `wrangler.toml` (route, `keep_vars`, compatibility date) in locale, senza contattare Cloudflare e senza segreti.
 
-Il monitor Checkly `cloudflare-worker-active` interroga il dominio ogni 6 ore e verifica `x-worker: active` e `x-maintenance: off`. Se il worker cadesse, venisse scollegato o la manutenzione restasse accesa per errore, il check fallisce.
+Il monitor Checkly `cloudflare-worker-active` interroga il dominio ogni 6 ore e verifica `x-worker: active` e `x-maintenance: off`. Se il worker cadesse, venisse scollegato o la manutenzione restasse accesa per errore, il check fallisce. Il monitor `worker-filters-vercel-instructions`, ogni 6 ore, chiede la home con un parametro `x-vercel-*` che Vercel non conosce e verifica `x-worker-filtered: 1`. Gli unit test in `tests/unit/maintenance-worker.test.ts` coprono bypass, filtro e cookie.
 
 ## Note
 

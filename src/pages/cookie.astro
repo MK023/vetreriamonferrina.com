@@ -1,6 +1,7 @@
 ---
 // src/pages/cookie.astro — Cookie policy con tabella cookie tecnici e istruzioni gestione browser.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { email, emailHref } from '../data/contatti';
 import GlassPanel from '../components/GlassPanel.astro';
 export const prerender = true;
 ---
@@ -98,6 +99,31 @@ export const prerender = true;
                     personali. Può essere eliminato dalle impostazioni del browser.
                   </td>
                 </tr>
+                <tr class="border-b border-neutral-200">
+                  <td class="py-3 pr-4 font-medium"
+                    >localStorage<br /><span class="text-xs text-neutral-500">(theme)</span></td
+                  >
+                  <td class="py-3 pr-4">Tecnico</td>
+                  <td class="py-3 pr-4">Persistente</td>
+                  <td class="py-3">
+                    Memorizza il tema chiaro o scuro scelto con l'interruttore in alto. Non contiene
+                    dati personali. Può essere eliminato dalle impostazioni del browser.
+                  </td>
+                </tr>
+                <tr class="border-b border-neutral-200">
+                  <td class="py-3 pr-4 font-medium"
+                    >Cookie di Cloudflare<br /><span class="text-xs text-neutral-500"
+                      >(__cf_bm)</span
+                    ></td
+                  >
+                  <td class="py-3 pr-4">Tecnico</td>
+                  <td class="py-3 pr-4">30 minuti di inattività</td>
+                  <td class="py-3">
+                    Lo può impostare Cloudflare, la rete da cui passa il sito, per la protezione dai
+                    bot: serve a calcolare se la richiesta arriva da un programma automatico. Il
+                    contenuto è cifrato e lo legge solo Cloudflare.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -111,10 +137,23 @@ export const prerender = true;
           </div>
 
           <div class="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-            <p class="font-semibold text-primary">Nessun cookie per analytics</p>
+            <p class="font-semibold text-primary">Nessun cookie per statistiche</p>
             <p class="mt-1">
-              Il sito utilizza Cloudflare Web Analytics per le statistiche di traffico. Questo
-              servizio <strong>non utilizza cookie</strong> e non raccoglie dati personali degli utenti.
+              Le statistiche aggregate del traffico le calcola Cloudflare dalle richieste che
+              passano dai suoi server. <strong>Non usa cookie</strong> né salva dati nel browser.
+            </p>
+          </div>
+
+          <div class="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <p class="font-semibold text-primary">Google Maps, solo se la carichi</p>
+            <p class="mt-1">
+              La mappa della pagina contatti si carica solo quando premi "Visualizza la mappa". Da
+              quel momento Google può impostare i propri cookie, secondo la <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary underline underline-offset-2">privacy policy di Google</a
+              >.
             </p>
           </div>
         </div>
@@ -187,10 +226,7 @@ export const prerender = true;
           <p class="mt-3">
             Per qualsiasi domanda relativa alla presente Cookie Policy, è possibile contattare il
             titolare del trattamento all'indirizzo email:
-            <a
-              href="mailto:vetreriamonferrina@gmail.com"
-              class="text-primary underline underline-offset-2">vetreriamonferrina@gmail.com</a
-            >
+            <a href={emailHref} class="text-primary underline underline-offset-2">{email}</a>
           </p>
           <p class="mt-3">
             Per informazioni complete sul trattamento dei dati personali, consulta la nostra <a
@@ -201,7 +237,7 @@ export const prerender = true;
         </div>
 
         <div class="border-t border-neutral-200 pt-8 text-sm text-neutral-500">
-          <p>Ultimo aggiornamento: marzo 2026</p>
+          <p>Ultimo aggiornamento: ottobre 2026</p>
         </div>
       </div>
     </div>

@@ -2,15 +2,24 @@
 // src/components/HeroSection.astro
 // Hero uses CSS-only animation (no data-reveal) to avoid delaying LCP.
 import GlassPanel from './GlassPanel.astro';
+import ContattaciButton from './ContattaciButton.astro';
 ---
 
 <section
   data-section="hero"
   class="relative overflow-hidden bg-gradient-to-br from-primary via-primary-dark to-primary"
 >
+  <!-- Aloni come gradiente a tinta unita, non come colore di fondo: a colore pieno axe li prendeva
+       per lo sfondo del pulsante "Scopri i nostri servizi" e ignorava il blu sotto (1,07:1 a
+       412 px, PageSpeed mobile a 96; sui pixel è 9,73:1). Stessi pixel, misurato (AU1). -->
   <div class="absolute inset-0 opacity-10 will-change-transform" data-hero-parallax>
-    <div class="absolute top-10 right-10 h-64 w-64 rounded-full bg-secondary blur-3xl"></div>
-    <div class="absolute bottom-10 left-10 h-48 w-48 rounded-full bg-secondary-light blur-3xl">
+    <div
+      class="absolute top-10 right-10 h-64 w-64 rounded-full bg-[linear-gradient(var(--color-secondary),var(--color-secondary))] blur-3xl"
+    >
+    </div>
+    <div
+      class="absolute bottom-10 left-10 h-48 w-48 rounded-full bg-[linear-gradient(var(--color-secondary-light),var(--color-secondary-light))] blur-3xl"
+    >
     </div>
   </div>
 
@@ -33,16 +42,11 @@ import GlassPanel from './GlassPanel.astro';
       </p>
 
       <div class="hero-fade-in hero-delay-3 mt-10 flex flex-wrap items-center gap-4">
-        <a
-          href="/preventivo"
-          class="inline-block rounded-full bg-secondary-dark px-8 py-3.5 text-base font-semibold text-neutral-50 shadow-lg transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-secondary-light focus:ring-offset-2 focus:ring-offset-primary"
-        >
-          Richiedi preventivo
-        </a>
+        <ContattaciButton />
 
         <a
           href="/servizi"
-          class="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-medium text-neutral-50 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-neutral-50 focus:ring-offset-2 focus:ring-offset-primary"
+          class="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-medium text-neutral-50 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
         >
           Scopri i nostri servizi
           <svg
@@ -117,5 +121,5 @@ import GlassPanel from './GlassPanel.astro';
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  document.addEventListener('astro:page-load', initHeroParallax);
+  initHeroParallax();
 </script>

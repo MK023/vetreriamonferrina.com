@@ -26,7 +26,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
       {
         title: 'Vetro temperato di sicurezza',
-        text: 'Vetro temperato da 6 o 8 mm conforme alla normativa UNI 7697. In caso di rottura si frantuma in piccoli frammenti non taglienti.',
+        text: 'Vetro temperato di sicurezza da 8 o 10 mm secondo UNI EN 12150-1, scelto con i criteri della UNI 7697:2021. In caso di rottura si frantuma in piccoli frammenti non taglienti.',
       },
       {
         title: 'Finiture e profili',
@@ -38,8 +38,8 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
     ],
     materials: [
-      'Vetro temperato 6 mm',
       'Vetro temperato 8 mm',
+      'Vetro temperato 10 mm',
       'Vetro satinato',
       'Vetro trasparente extra-chiaro',
     ],
@@ -77,8 +77,8 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       'Installiamo parapetti in vetro — chiamati anche balaustre o ringhiere in vetro — per balconi, terrazze, scale interne ed esterne. Il vetro stratificato di sicurezza garantisce protezione senza rinunciare alla trasparenza e alla luce naturale.',
     features: [
       {
-        title: 'Sicurezza certificata',
-        text: 'Vetro stratificato di sicurezza conforme alle norme UNI 7697 e alle NTC 2018 per elementi strutturali.',
+        title: 'Vetro di sicurezza',
+        text: 'Vetro stratificato di sicurezza scelto con i criteri della UNI 7697:2021; dimensionamento secondo NTC 2018, con verifica del progettista quando richiesta.',
       },
       {
         title: 'Sistemi di fissaggio',
@@ -99,14 +99,14 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       'Vetro extra-chiaro',
     ],
     seoDescription:
-      'Parapetti e balaustre in vetro — ringhiere per balconi, scale e terrazze a Casale Monferrato. Installazione certificata in vetro stratificato di sicurezza.',
+      'Parapetti e balaustre in vetro — ringhiere per balconi, scale e terrazze a Casale Monferrato. Posa in vetro stratificato di sicurezza.',
     related: ['stratificati', 'pensiline', 'vetrine'],
     whenToChoose:
       'Un parapetto in vetro — o balaustra — mette in sicurezza balconi, scale e terrazze senza togliere luce né visuale. È la soluzione ideale quando vuoi proteggere senza chiudere: che si tratti della ringhiera in vetro di un balcone o della balaustra di una scala interna, il vetro stratificato di sicurezza garantisce resistenza e, in caso di rottura, trattiene i frammenti restando in posizione. Scegliamo insieme il sistema di fissaggio — a pinza, a pavimento o a muro — in base al contesto architettonico e alle normative vigenti.',
     faq: [
       {
         q: 'Un parapetto in vetro è sicuro come uno tradizionale?',
-        a: 'Sì. Usiamo vetro stratificato di sicurezza conforme alle norme UNI 7697 e NTC 2018: resiste agli urti e, se si rompe, resta in posizione senza cadere.',
+        a: 'Sì. Usiamo vetro stratificato di sicurezza scelto con i criteri della UNI 7697:2021, con dimensionamento secondo NTC 2018 e verifica del progettista quando richiesta: resiste agli urti e, se si rompe, resta in posizione senza cadere.',
       },
       {
         q: 'Serve una struttura in metallo a vista?',
@@ -247,7 +247,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
       {
         q: 'Gli espositori sono adatti a negozi e attività?',
-        a: 'Sì, produciamo espositori e vetrine da esposizione per negozi, showroom e attività come gelaterie e pasticcerie, anche con predisposizione per l’illuminazione.',
+        a: 'Sì, realizziamo su misura espositori e vetrine da esposizione per negozi, showroom e attività come gelaterie e pasticcerie, anche con predisposizione per l’illuminazione.',
       },
     ],
     related: ['vetrine', 'specchi', 'molature'],
@@ -300,12 +300,12 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       'Realizziamo e installiamo vetri blindati antisfondamento e antiproiettile per abitazioni, uffici e attività commerciali a Casale Monferrato e dintorni. Sono vetri di sicurezza stratificati, composti da più lastre unite da intercalari in PVB: in caso di urto o tentativo di effrazione il vetro si crepa ma resta integro, senza cedere e senza frammenti taglienti. La stessa tecnologia protegge finestre, portefinestre e vetrine dove serve una barriera reale contro intrusioni e sfondamenti.',
     features: [
       {
-        title: 'Antisfondamento certificato',
-        text: 'Vetro stratificato di sicurezza con classi di resistenza secondo EN 356 (antieffrazione, da P1A a P8B): più lastre e più intercalari PVB, più alto il livello di protezione contro urti e tentativi di sfondamento.',
+        title: 'Antisfondamento',
+        text: 'Vetro stratificato di sicurezza con classe di resistenza secondo UNI EN 356 (antieffrazione), certificata dal produttore: più lastre e più intercalari PVB, più alto il livello di protezione contro urti e tentativi di sfondamento.',
       },
       {
         title: 'Versione antiproiettile',
-        text: 'Per esigenze di massima sicurezza — banche, gioiellerie, uffici sensibili — forniamo vetri antiproiettile certificati EN 1063, dimensionati in base al livello di minaccia.',
+        text: 'Per esigenze di massima sicurezza — banche, gioiellerie, uffici sensibili — forniamo vetri antiproiettile di classe secondo UNI EN 1063, certificata dal produttore, scelti in base al livello di minaccia.',
       },
       {
         title: 'Su misura per porte e finestre',
@@ -318,12 +318,12 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     ],
     materials: [
       'Vetro stratificato antisfondamento (PVB multi-lastra)',
-      'Vetro antiproiettile certificato EN 1063',
+      'Vetro antiproiettile, classe secondo UNI EN 1063 certificata dal produttore',
       'Vetrocamera con lastra stratificata di sicurezza',
       'Vetro extra-chiaro stratificato',
     ],
     seoDescription:
-      'Vetri blindati antisfondamento e antiproiettile a Casale Monferrato: vetro stratificato di sicurezza per finestre, portefinestre e vetrine. Certificati EN 356 / EN 1063. Sopralluogo gratuito.',
+      'Vetri blindati antisfondamento e antiproiettile a Casale Monferrato: vetro stratificato di sicurezza per finestre, portefinestre e vetrine. Classe certificata dal produttore secondo UNI EN 356 / UNI EN 1063. Sopralluogo gratuito.',
     related: ['stratificati', 'vetrocamera', 'porte-interne'],
     whenToChoose:
       'Il vetro blindato è la scelta giusta quando la sicurezza è una priorità concreta: abitazioni al piano terra, ville isolate, uffici, negozi e vetrine esposte, o attività che custodiscono valori. A differenza di inferriate e serrande, il vetro antisfondamento protegge senza chiudere la visuale né togliere luce agli ambienti. Per le finestre e le portefinestre più esposte si può combinare il vetro stratificato di sicurezza con un serramento robusto, ottenendo una porta finestra antisfondamento che resiste ai tentativi di effrazione. Durante il sopralluogo valutiamo il livello di protezione adatto — dall’antisfondamento domestico all’antiproiettile — e la compatibilità con i tuoi infissi.',
@@ -436,7 +436,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
       {
         q: 'Dove è obbligatorio il vetro di sicurezza?',
-        a: 'La norma UNI 7697 indica dove serve il vetro stratificato o temperato: parapetti, vetrate a tutta altezza, porte, lucernari e superfici a rischio di urto o caduta. Ti aiutiamo a scegliere il vetro a norma per ogni applicazione.',
+        a: 'In sintesi, la norma UNI 7697:2021 indica i criteri per scegliere il vetro di sicurezza, stratificato o temperato, a seconda dell’applicazione: parapetti, vetrate a tutta altezza, porte, lucernari e superfici a rischio di urto o caduta. Ti aiutiamo a scegliere il vetro giusto per ogni applicazione.',
       },
     ],
   },
@@ -502,7 +502,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
       {
         title: 'Risparmio energetico',
-        text: 'Riduzione dei costi di riscaldamento e raffrescamento. Intervento ammissibile alle detrazioni fiscali.',
+        text: 'Riduzione dei costi di riscaldamento e raffrescamento. L’intervento può rientrare nelle detrazioni fiscali, se ne rispetta i requisiti.',
       },
       {
         title: 'Vetri basso-emissivi',
@@ -549,7 +549,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
       {
         title: 'Standard di nuova costruzione',
-        text: 'Risponde ai requisiti energetici delle normative più recenti per edifici nZEB.',
+        text: 'Adatto agli edifici ad alta efficienza energetica (nZEB).',
       },
     ],
     seoDescription:
@@ -596,7 +596,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     ],
     seoDescription:
       "Specchi su misura a Casale Monferrato. Taglio, molatura e installazione professionale per bagni, armadi e complementi d'arredo.",
-    related: ['box-doccia', 'molature', 'espositori'],
+    related: ['box-doccia', 'lavori-personalizzati', 'espositori'],
     whenToChoose:
       'Uno specchio su misura risolve tutti i casi in cui i modelli standard non bastano: pareti irregolari, spazi sopra il lavabo, ante di armadi, palestre e studi di danza. Possiamo tagliare qualsiasi forma e rifinire i bordi con molatura a filo lucido o bisello, per un risultato sicuro ed elegante. In fase di sopralluogo valutiamo insieme dimensioni, tipo di fissaggio e finitura più adatti all’ambiente.',
     faq: [
@@ -625,7 +625,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       },
       {
         title: 'Vetro temperato',
-        text: 'Vetro temperato di sicurezza da 8 o 10 mm, resistente agli urti e conforme alla normativa.',
+        text: 'Vetro temperato di sicurezza da 8 o 10 mm secondo UNI EN 12150-1, resistente agli urti.',
       },
       {
         title: 'Personalizzazione',
@@ -643,7 +643,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     faq: [
       {
         q: 'Una porta in vetro è sicura?',
-        a: 'Sì: usiamo vetro temperato di sicurezza da 8 o 10 mm, resistente agli urti e conforme alla normativa.',
+        a: 'Sì: usiamo vetro temperato di sicurezza da 8 o 10 mm secondo UNI EN 12150-1, resistente agli urti.',
       },
       {
         q: 'Meglio scorrevole o a battente?',
@@ -670,7 +670,33 @@ export const serviceDetails: Record<string, ServiceDetail> = {
         a: 'Bastano un panno in microfibra e un detergente per vetri non abrasivo, evitando spugne ruvide che opacizzano la superficie. Sul satinato le impronte si vedono meno che sul trasparente, quindi la manutenzione è ancora più semplice.',
       },
     ],
-    related: ['madras', 'specchi', 'box-doccia'],
+    related: ['madras', 'specchi', 'lavori-personalizzati'],
+  },
+
+  'lavori-personalizzati': {
+    intro:
+      'Realizziamo vetri e specchi con un elemento grafico scelto da te: il logo della tua azienda su una porta, lo stemma della tua squadra su uno specchio, un disegno su un box doccia. Il lavoro si fa sulle tue misure o su misure standard.',
+    features: [
+      {
+        title: 'Logo o disegno a scelta',
+        text: 'Il soggetto lo scegli tu: un logo aziendale, lo stemma di una squadra, un disegno. Chi ci chiede un logo o uno stemma deve avere il diritto di usarlo.',
+      },
+      {
+        title: 'Porte, specchi, box doccia, insegne',
+        text: 'Lo applichiamo su vetri e specchi per la casa e per le attività, come un’insegna in vetro decorato.',
+      },
+      {
+        title: 'Su misura o di misura standard',
+        text: 'Il disegno non dipende dalle misure: lo realizziamo anche su un box doccia di misura regolare.',
+      },
+      {
+        title: 'Sopralluogo e posa',
+        text: 'Sopralluogo gratuito in Piemonte e Lombardia; la posa la fanno solo i nostri vetrai.',
+      },
+    ],
+    seoDescription:
+      'Vetri e specchi personalizzati con logo o disegno a Casale Monferrato: porte, specchi, box doccia e insegne in vetro.',
+    related: ['specchi', 'porte-interne', 'box-doccia'],
   },
 
   sagomature: {
